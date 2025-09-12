@@ -1,0 +1,34 @@
+import { Client } from "@notionhq/client";
+const ensureHomePage = async (notion) => {
+  const search = await notion.search({ query: "Workday Timer (Home)", filter: { property: "object", value: "page" }, sort: { direction: "descending", timestamp: "last_edited_time" } });
+  const found = search.results.find(r => r.object === "page" && r.properties?.title);
+  if (found) return found.id;
+  const page = await notion.pages.create({ parent: { type: "workspace", workspace: true }, properties: { title: { title: [{ type: "text", text: { content: "Workday Timer (Home)"} }] } } });
+  return page.id;
+};
+const ensureTimeLogDb = async (notion, homeId) => {
+  const search = await notion.search({ query: "Time Log", filter: { property: "object", value: "database" }, sort: { direction: "descending", timestamp: "last_edited_time" } });
+  const db = search.results.find(r => (r.title?.[0]?.plain_text || "") === "Time Log");
+  if (db) return db.id;
+  const created = await notion.databases.create({ parent: { type: "page_id", page_id: homeId }, title: [{ type: "text", text: { content: "Time Log" } }], properties: { "Date": { date: {} }, "Minutes": { number: {} } } });
+  return created.id;
+};
+export async function handler(event) {
+  const token = (event.headers.authorization || "").replace(/^Bearer\s+/i, ""); if (!token) return { statusCode: 401, body: "Missing authorization" };
+  try {
+    const qs = event.queryStringParameters || {}; const from = qs.from, to = qs.to; if (!from || !to) return { statusCode: 400, body: "Missing from/to" };
+    const notion = new Client({ auth: token });
+    const homeId = await ensureHomePage(notion);
+    const dbId = await ensureTimeLogDb(notion, homeId);
+    const res = await notion.databases.query({ database_id: dbId, filter: { and: [{ property: "Date", date: { on_or_after: from } }, { property: "Date", date: { on_or_before: to } }] }, page_size: 100 });
+    const days = {}; const keyFromISO = (iso) => (iso || "").slice(0,10);
+    for (const page of res.results) {
+      const date = page.properties?.["Date"]?.date?.start;
+      const minutes = page.properties?.["Minutes"]?.number || 0;
+      const key = keyFromISO(date); if (!key) continue;
+      if (!days[key]) days[key] = { totalMs: 0 };
+      days[key].totalMs += minutes * 60000;
+    }
+    return { statusCode: 200, body: JSON.stringify({ days }) };
+  } catch (e) { return { statusCode: 500, body: "Totals error: " + e.message }; }
+}

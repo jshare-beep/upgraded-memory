@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workday Timer – Let’s Log Some Hours</title>
+  <style>
+    :root {
+      --bg: transparent;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #936B4D;
+      --border: #e5e7eb;
+      --shadow: 0 10px 20px rgba(0,0,0,0.08);
+      --radius: 16px;
+      --go: #6B8E62; --pause: #C49A6C; --stop: #C9645B;
+      --btn-text: #1a1a1a; --btn-text-inv: #ffffff;
+      --goal-track: #e6e0da; --goal-progress: #936B4D;
+    }
+    [data-theme="dark"] {
+      --card: #0f1115; --text: #f3f4f6; --muted: #a1a1aa; --accent: #d1b59a; --border: #2a2f3a; --shadow: 0 12px 24px rgba(0,0,0,0.35);
+      --go: #86A67C; --pause: #D7B28B; --stop: #D07B73; --btn-text: #0f1115; --btn-text-inv: #121212;
+      --goal-track: #2a2f3a; --goal-progress: #d1b59a;
+    }
+    * { box-sizing: border-box; } html, body { height: 100%; }
+    body { margin: 0; padding: 16px; font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif; background: var(--bg); color: var(--text); }
+    .widget { max-width: 860px; margin: 0 auto; background: var(--card); border: 2px dashed #936B4D33; border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .title { font-weight: 800; letter-spacing: 0.2px; font-size: clamp(22px, 3.2vw, 36px); color: var(--accent); }
+    .status { font-size: 12px; color: var(--muted); padding: 4px 8px; border: 1px solid var(--border); border-radius: 999px; }
+    .topbar { display:flex; align-items:center; gap:8px; }
+    .bar { display:flex; flex-wrap:wrap; gap:12px; margin: 8px 0 10px; }
+    .group { display:flex; align-items:center; gap:8px; }
+    label { font-size:12px; color: var(--muted); }
+    select, input[type='url'], input[type='text'] { background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+    .btns { display:flex; flex-wrap:wrap; gap:8px; }
+    button { appearance:none; border:1px solid var(--border); padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer; background:#fff0; color:var(--text); transition: transform .04s ease; }
+    button:active { transform: translateY(1px); } .go { background: var(--go); color: var(--btn-text-inv); border-color: transparent; } .pause { background: var(--pause); color: var(--btn-text); border-color: transparent; } .stop { background: var(--stop); color: #fff; border-color: transparent; } .ghost { border-color: var(--border); }
+    .row { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center; padding:14px; border:1px dashed var(--border); border-radius:12px; margin-bottom:12px; }
+    .today-label { font-size: 14px; color: var(--muted); }
+    .big { font-variant-numeric: tabular-nums; font-size: clamp(36px, 6.5vw, 64px); line-height:1; font-weight: 800; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; } th, td { padding: 10px 8px; text-align:left; } thead th { font-size:12px; color:var(--muted); font-weight:700; border-bottom:1px solid var(--border); } tbody td { border-bottom:1px solid var(--border); font-variant-numeric: tabular-nums; }
+    .hint { margin-top:8px; font-size:12px; color:var(--muted); }
+    .goal { display:flex; align-items:center; gap:12px; }
+    .ring { width: 64px; height: 64px; } .ring circle.track { stroke: var(--goal-track); } .ring circle.progress { stroke: var(--goal-progress); transition: stroke-dashoffset .3s ease; }
+  </style>
+</head>
+<body>
+  <div class="widget" role="application" aria-label="Workday Timer">
+    <header>
+      <div class="title">Let's Log Some Hours</div>
+      <div class="topbar">
+        <button class="ghost" id="themeBtn" title="Toggle dark mode">🌙</button>
+        <button class="ghost" id="connectBtn">Connect Notion</button>
+        <div class="status" id="status">Not connected</div>
+      </div>
+    </header>
+
+    <div class="bar">
+      <div class="group">
+        <label for="clientSel">Client</label>
+        <select id="clientSel"></select>
+        <button class="ghost" id="addClientBtn">+ add</button>
+      </div>
+      <div class="group">
+        <label for="projectSel">Project</label>
+        <select id="projectSel"></select>
+        <button class="ghost" id="addProjectBtn">+ add</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="today-label" id="todayLabel"></div>
+        <div class="big" id="todayBig">00:00:00</div>
+        <div class="goal" style="margin-top:10px;">
+          <svg class="ring" viewBox="0 0 36 36" aria-hidden="true">
+            <circle class="track" cx="18" cy="18" r="15" fill="none" stroke-width="4" />
+            <circle class="progress" id="goalProgress" cx="18" cy="18" r="15" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94.2" />
+          </svg>
+          <button class="ghost" id="goalBtn" title="Set daily goal (hours)">Daily goal</button>
+          <span id="goalLabel" class="today-label"></span>
+        </div>
+      </div>
+      <div class="btns" role="group" aria-label="Timer controls">
+        <button class="go" id="goBtn">Go</button>
+        <button class="pause" id="pauseBtn">Pause</button>
+        <button class="stop" id="stopBtn">Stop</button>
+      </div>
+    </div>
+
+    <table aria-label="Daily totals">
+      <thead><tr><th>Day</th><th>Time worked</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="hint">Connect once. On Stop/Pause we log to Notion under the selected Client/Project. Manual entries in Notion show here after a refresh.</div>
+  </div>
+
+  <script>
+    (function(){
+      const $ = sel => document.querySelector(sel);
+      const statusEl = $('#status');
+      const connectBtn = $('#connectBtn');
+      const themeBtn = $('#themeBtn');
+      const rowsEl = $('#rows');
+      const todayBig = $('#todayBig');
+      const todayLabel = $('#todayLabel');
+      const goBtn = $('#goBtn'), pauseBtn = $('#pauseBtn'), stopBtn = $('#stopBtn');
+      const clientSel = $('#clientSel'), projectSel = $('#projectSel');
+      const addClientBtn = $('#addClientBtn'), addProjectBtn = $('#addProjectBtn');
+      const goalBtn = $('#goalBtn'), goalLabel = $('#goalLabel'), goalProgress = $('#goalProgress');
+      const CIRC = 2 * Math.PI * 15; goalProgress.setAttribute('stroke-dasharray', String(CIRC));
+
+      const pad = n => String(n).padStart(2,'0');
+      const dateKey = (d) => [d.getFullYear(), pad(d.getMonth()+1), pad(d.getDate())].join('-');
+      const prettyDate = (d) => new Intl.DateTimeFormat(undefined, { weekday:'long', month:'long', day:'numeric'}).format(d);
+
+      const STORAGE = 'wdt:v6';
+      let data = Object.assign({ totals: {}, status: 'stopped', startCursor: null, sessionStart: null, token: null, theme: 'light', goalMs: 0, clients: [{name:'General'}], projects: [{name:'Unassigned'}], currentClient: 0, currentProject: 0 }, JSON.parse(localStorage.getItem(STORAGE) || '{}'));
+      const save = () => localStorage.setItem(STORAGE, JSON.stringify(data));
+
+      if (location.hash.includes('access_token=')) { const params = new URLSearchParams(location.hash.slice(1)); data.token = decodeURIComponent(params.get('access_token')); save(); history.replaceState({}, document.title, location.pathname + location.search); }
+
+      const applyTheme = () => { document.body.setAttribute('data-theme', data.theme==='dark' ? 'dark' : 'light'); themeBtn.textContent = data.theme==='dark' ? '☀️' : '🌙'; };
+      themeBtn.addEventListener('click', () => { data.theme = data.theme==='dark' ? 'light' : 'dark'; save(); applyTheme(); }); applyTheme();
+
+      const updateStatus = () => { statusEl.textContent = data.token ? (data.status.charAt(0).toUpperCase()+data.status.slice(1)) : "Not connected"; connectBtn.style.display = data.token ? 'none' : 'inline-block'; };
+      connectBtn.addEventListener('click', () => { const ret = encodeURIComponent(location.href); window.location.href = '/.netlify/functions/auth-start?return=' + ret; });
+
+      const renderOptions = (el, items) => { el.innerHTML = items.map((it,i)=>`<option value="${i}">${it.name}</option>`).join(''); };
+      const addItem = (listName) => { const name = prompt(`Add ${listName} name`); if (!name) return; data[listName+'s'].push({ name }); if (listName==='client') { renderOptions(clientSel, data.clients); data.currentClient = data.clients.length-1; clientSel.value = String(data.currentClient); } else { renderOptions(projectSel, data.projects); data.currentProject = data.projects.length-1; projectSel.value = String(data.currentProject); } save(); if (data.status==='running') { pause(); setTimeout(go,0); } };
+      addClientBtn.addEventListener('click', () => addItem('client')); addProjectBtn.addEventListener('click', () => addItem('project'));
+      clientSel.addEventListener('change', (e)=>{ data.currentClient = Number(e.target.value||0); save(); if (data.status==='running') { pause(); setTimeout(go,0); } });
+      projectSel.addEventListener('change', (e)=>{ data.currentProject = Number(e.target.value||0); save(); if (data.status==='running') { pause(); setTimeout(go,0); } });
+
+      const midnightAfter = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+1, 0,0,0,0);
+      const addMsTo = (day, ms) => { data.totals[day] = (data.totals[day]||0) + ms; };
+      const accrueUntilNow = () => { if (data.status !== 'running' || !data.startCursor) return; let start = new Date(data.startCursor); const now = new Date(); while (start < now) { const boundary = midnightAfter(start); const chunkEnd = boundary < now ? boundary : now; addMsTo(dateKey(start), chunkEnd - start); start = chunkEnd; } data.startCursor = now.toISOString(); };
+
+      function renderGoal() { if (!data.goalMs) { goalLabel.textContent = 'No goal'; goalProgress.style.strokeDashoffset = CIRC; return; } const now = new Date(); const kNow = dateKey(now); const todayMs = data.totals[kNow] || 0; const ratio = Math.max(0, Math.min(1, todayMs / data.goalMs)); goalProgress.style.strokeDashoffset = (1 - ratio) * CIRC; goalLabel.textContent = `${(data.goalMs/3600000).toFixed(1)}h goal · ${Math.round(ratio*100)}%`; }
+      goalBtn.addEventListener('click', () => { const hours = Number(prompt('Set daily goal (hours):', data.goalMs ? (data.goalMs/3600000).toFixed(1) : '8')); if (!hours || hours <= 0) return; data.goalMs = Math.round(hours * 3600000); save(); renderGoal(); });
+
+      const currentNames = () => ({ client: (data.clients[data.currentClient] || {name:'General'}).name, project: (data.projects[data.currentProject] || {name:'Unassigned'}).name });
+      const go = () => { if (!data.token) { alert('Connect Notion first'); return; } if (data.status === 'running') return; const nowIso = new Date().toISOString(); data.sessionStart = nowIso; data.startCursor = nowIso; data.status = 'running'; save(); updateStatus(); };
+      const pause = async () => { if (data.status !== 'running') return; accrueUntilNow(); const endIso = new Date().toISOString(); const startIso = data.sessionStart; data.startCursor = null; data.sessionStart = null; data.status = 'paused'; save(); updateStatus(); renderGoal(); const {client, project} = currentNames(); await sendSession(startIso, endIso, client, project); };
+      const stop = async () => { if (data.status === 'running') { accrueUntilNow(); const endIso = new Date().toISOString(); const startIso = data.sessionStart; data.startCursor = null; data.sessionStart = null; data.status = 'stopped'; save(); updateStatus(); renderGoal(); const {client, project} = currentNames(); await sendSession(startIso, endIso, client, project); } else { data.status = 'stopped'; save(); updateStatus(); } };
+      goBtn.addEventListener('click', go); pauseBtn.addEventListener('click', pause); stopBtn.addEventListener('click', stop);
+      window.addEventListener('keydown', (e) => { if (e.code==='Space') { e.preventDefault(); data.status==='running'?pause():go(); } if (e.key.toLowerCase()==='s') stop(); });
+
+      async function sendSession(start, end, client, project) { if (!data.token) return; try { await fetch('/.netlify/functions/log', { method:'POST', headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + data.token }, body: JSON.stringify({ start, end, client, project, note: '', sessionId: start }) }); const now = new Date(); const from = new Date(); from.setDate(now.getDate()-2); const url = `/.netlify/functions/totals?from=${from.toISOString().slice(0,10)}&to=${now.toISOString().slice(0,10)}`; const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + data.token } }); if (res.ok) { const json = await res.json(); const days = json.days || {}; Object.keys(days).forEach(k => { data.totals[k] = days[k].totalMs; }); save(); } } catch (e) { console.warn('sendSession failed', e); } }
+
+      const formatHMS = (ms) => { ms = Math.max(0, Math.floor(ms)); const s = Math.floor(ms/1000); const hh=Math.floor(s/3600), mm=Math.floor((s%3600)/60), ss=s%60; return `${pad(hh)}:${pad(mm)}:${pad(ss)}`; };
+      function render() { const now = new Date(); const kNow = dateKey(now); const y = new Date(now); y.setDate(now.getDate()-1); const b = new Date(now); b.setDate(now.getDate()-2); todayBig.textContent = formatHMS(data.totals[kNow]||0); todayLabel.textContent = prettyDate(now); const rows = [ { k: kNow, label: 'Today' }, { k: dateKey(y), label: 'Yesterday' }, { k: dateKey(b), label: 'Day before' }, ]; rowsEl.innerHTML = rows.map(r => `<tr><td>${r.label}<div style="color:var(--muted); font-size:12px">${r.k}</div></td><td>${formatHMS(data.totals[r.k]||0)}</td></tr>`).join(''); renderGoal(); }
+      const init = () => { if (!data.clients.length) data.clients = [{name:'General'}]; if (!data.projects.length) data.projects = [{name:'Unassigned'}]; renderOptions(clientSel, data.clients); renderOptions(projectSel, data.projects); clientSel.value = String(Math.min(data.currentClient, data.clients.length-1)); projectSel.value = String(Math.min(data.currentProject, data.projects.length-1)); updateStatus(); render(); save(); };
+      setInterval(() => { accrueUntilNow(); render(); save(); }, 1000); init();
+    })();
+  </script>
+</body>
+</html>
