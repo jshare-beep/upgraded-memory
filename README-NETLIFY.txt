@@ -1,0 +1,1 @@
+Deploy via GitHub → Netlify. Env vars: NOTION_CLIENT_ID / NOTION_CLIENT_SECRET. Functions dir: netlify/functions. Widget URL: /widget/.

@@ -24,13 +24,11 @@ export async function handler(event) {
   try {
     const body = JSON.parse(event.body || "{}"); const { start, end, client, project, note, sessionId } = body;
     if (!start || !end || !client || !project) return { statusCode: 400, body: "Missing fields" };
-    const notion = new Client({ auth: token });
-    const homeId = await ensureHomePage(notion);
-    const dbIds = await ensureDatabases(notion, homeId);
-    let c = await findByTitle(notion, dbIds.clients, client); if (!c) c = await createClient(notion, dbIds.clients, client);
-    let p = await findByTitle(notion, dbIds.projects, project); if (!p) p = await createProject(notion, dbIds.projects, project, c.id);
+    const notion = new Client({ auth: token }); const homeId = await ensureHomePage(notion); const dbIds = await ensureDatabases(notion, homeId);
+    let c = await findByTitle(notion, dbIds.clients, client); if (!c) c = await createClient(notion, dbIds.clients, client); const clientId = c.id;
+    let p = await findByTitle(notion, dbIds.projects, project); if (!p) p = await createProject(notion, dbIds.projects, project, clientId); const projectId = p.id;
     const minutes = Math.max(0, Math.round((new Date(end) - new Date(start)) / 60000));
-    await notion.pages.create({ parent: { database_id: dbIds.timeLog }, properties: { "Date": { date: { start } }, "Minutes": { number: minutes }, "Client": { relation: [{ id: c.id }] }, "Project": { relation: [{ id: p.id }] }, "Note": note ? { rich_text: [{ type: "text", text: { content: note } }] } : undefined, "Source": { select: { name: "Widget" } }, "Session ID": sessionId ? { rich_text: [{ type: "text", text: { content: sessionId } }] } : undefined } });
-    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    const created = await notion.pages.create({ parent: { database_id: dbIds.timeLog }, properties: { "Date": { date: { start } }, "Minutes": { number: minutes }, "Client": { relation: [{ id: clientId }] }, "Project": { relation: [{ id: projectId }] }, "Note": note ? { rich_text: [{ type: "text", text: { content: note } }] } : undefined, "Source": { select: { name: "Widget" } }, "Session ID": sessionId ? { rich_text: [{ type: "text", text: { content: sessionId } }] } : undefined } });
+    return { statusCode: 200, body: JSON.stringify({ ok: true, pageId: created.id }) };
   } catch (e) { return { statusCode: 500, body: "Log error: " + e.message }; }
 }
