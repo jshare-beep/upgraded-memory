@@ -2,3 +2,9 @@
   command = ""
   publish = "."
   functions = "netlify/functions"
+
+[[redirects]]
+  from = "/widget"
+  to = "/widget/index.html"
+  status = 200
+  force = true
