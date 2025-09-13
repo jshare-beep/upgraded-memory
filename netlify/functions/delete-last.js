@@ -22,7 +22,5 @@ export async function handler(event) {
     }
     await notion.pages.update({ page_id: targetId, archived: true });
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
-  } catch (e) {
-    return { statusCode: 500, body: "Delete error: " + e.message };
-  }
+  } catch (e) { return { statusCode: 500, body: "Delete error: " + e.message }; }
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Workday Timer – Let’s Log Some Hours</title>
+  <title>Workday Timer – Weekly Goal</title>
   <style>
     :root {
       --bg: transparent;
@@ -37,19 +37,8 @@
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
-    body {
-      margin: 0; padding: 24px;
-      font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-      font-size: 17px;
-      background: var(--bg); color: var(--text);
-    }
-    .widget {
-      max-width: 900px; margin: 0 auto;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-    }
+    body { margin: 0; padding: 24px; font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif; font-size: 17px; background: var(--bg); color: var(--text); }
+    .widget { max-width: 900px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
     .title { font-weight: 800; letter-spacing: 0.2px; font-size: clamp(26px, 3.2vw, 42px); color: var(--accent); }
     .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -57,10 +46,10 @@
     .topbar { display:flex; align-items:center; gap:8px; }
     .connect { background: var(--accent); color: white; border-color: var(--accent); }
     .bar { display:flex; flex-wrap:wrap; gap:12px; margin: 10px 0 12px; align-items:center; }
-    .group { display:flex; align-items:center; gap:8px; }
+    .group { display:flex; flex-direction:column; gap:6px; }
     label { font-size:12px; color: var(--muted); }
-    input.combo { width: 190px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; }
-    .pill { font-size: 12px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); }
+    select.combo { min-width: 260px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; }
+    .pill { font-size: 12px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); align-self:flex-start; }
     .btns { display:flex; flex-wrap:wrap; gap:8px; }
     button { appearance:none; border:1px solid var(--border); padding:10px 16px; border-radius: 999px; font-weight:600; cursor:pointer; background:#fff0; color: var(--text); transition: transform .04s ease; }
     button:active { transform: translateY(1px); }
@@ -78,7 +67,11 @@
     .hint{ margin-top:8px; font-size:12px; color:var(--muted); }
     .ring { position: relative; width: 80px; height: 80px; }
     .ring svg { position: absolute; inset: 0; }
-    .ring .innerText { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--muted); pointer-events:none; }
+    .ring .innerText { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--muted); pointer-events:none; text-align:center; white-space:pre-line; }
+    .helper { margin-top: 8px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 12px; font-size: 13px; color: var(--muted); display:none; }
+    .helper .row { display:flex; gap:8px; align-items:center; border:0; padding:0; margin:0; }
+    .helper button { padding:6px 10px; border-radius: 999px; }
+    .helper a { color: var(--accent); text-decoration:none; }
   </style>
 </head>
 <body>
@@ -90,25 +83,28 @@
       </div>
       <div class="topbar">
         <button class="ghost" id="themeBtn" title="Toggle dark mode">🌙</button>
+        <button class="ghost" id="syncBtn" title="Refresh projects from Notion">↻</button>
         <button class="connect" id="connectBtn">Connect Notion</button>
         <div class="status" id="status">Not connected</div>
       </div>
     </header>
 
     <div class="bar">
-      <div class="group">
-        <label for="clientInput">Client</label>
-        <input list="clientList" id="clientInput" class="combo" placeholder="Type or pick…" />
-        <datalist id="clientList"></datalist>
-        <button class="ghost" id="addClientBtn">+ add</button>
+      <div class="group" style="min-width:280px;">
+        <label for="projectSelect">Project</label>
+        <select id="projectSelect" class="combo">
+          <option value="">— Select a project —</option>
+        </select>
+        <div id="emptyHelper" class="helper">
+          <div class="row">
+            <span>Projects list looks empty.</span>
+            <button class="ghost" id="helperSync">↻ Try sync</button>
+            <a id="helperOpen" href="#" target="_blank" rel="noopener">Open Projects</a>
+          </div>
+          <div style="margin-top:6px;">After adding projects in Notion, click ↻ here to refresh.</div>
+        </div>
       </div>
-      <div class="group">
-        <label for="projectInput">Project</label>
-        <input list="projectList" id="projectInput" class="combo" placeholder="Type or pick…" />
-        <datalist id="projectList"></datalist>
-        <button class="ghost" id="addProjectBtn">+ add</button>
-      </div>
-      <span class="pill" id="pickedPill">Tag: — / —</span>
+      <span class="pill" id="pickedPill">Selected: — (Client: —)</span>
     </div>
 
     <div class="row">
@@ -121,9 +117,9 @@
               <circle cx="18" cy="18" r="15" fill="none" stroke-width="6" stroke="var(--goal-track)"></circle>
               <circle id="goalProgress" cx="18" cy="18" r="15" fill="none" stroke-width="6" stroke-linecap="round" stroke="var(--goal-progress)" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle>
             </svg>
-            <div class="innerText" id="goalInside">0%</div>
+            <div class="innerText" id="goalInside">0%\nWK</div>
           </div>
-          <button class="ghost" id="goalBtn" title="Set daily goal (hours)">Daily goal</button>
+          <button class="ghost" id="goalBtn" title="Set weekly goal (hours)">Weekly goal</button>
           <span id="goalLabel" class="today-label"></span>
         </div>
       </div>
@@ -131,7 +127,6 @@
         <button class="go" id="goBtn">Go</button>
         <button class="pause" id="pauseBtn">Pause</button>
         <button class="stop" id="stopBtn">Stop</button>
-        <button class="ghost" id="reassignBtn" title="Change client/project on last entry">Reassign last</button>
         <button class="ghost" id="deleteBtn" title="Delete your most recent time entry">Oops! Delete last</button>
       </div>
     </div>
@@ -142,151 +137,153 @@
     </table>
 
     <div class="hint">
-      Connect once. On Pause/Stop we write to your Notion databases:
-      <strong>Clients</strong>, <strong>Projects</strong>, and <strong>Time Log</strong>.
-      You can reassign or delete the most recent entry at any time.
+      Pick an existing Project from your Notion database. Client is auto-filled from that project. Weekly ring tracks Monday → Sunday.
+      <div class="muted">Tip: append <code>?projects_url=YOUR_NOTION_PROJECTS_URL</code> to the widget URL so the “Open Projects” link points to your database.</div>
     </div>
   </div>
 
   <script>
     (function(){
       const $ = sel => document.querySelector(sel);
-      const statusEl = $('#status'), connectBtn = $('#connectBtn'), themeBtn = $('#themeBtn');
+      const statusEl = $('#status'), connectBtn = $('#connectBtn'), themeBtn = $('#themeBtn'), syncBtn = $('#syncBtn');
       const rowsEl = $('#rows'), todayBig = $('#todayBig'), todayLabel = $('#todayLabel');
       const goBtn = $('#goBtn'), pauseBtn = $('#pauseBtn'), stopBtn = $('#stopBtn');
-      const reassignBtn = $('#reassignBtn'), deleteBtn = $('#deleteBtn');
-      const clientInput = $('#clientInput'), projectInput = $('#projectInput'), clientList = $('#clientList'), projectList = $('#projectList');
-      const addClientBtn=$('#addClientBtn'), addProjectBtn=$('#addProjectBtn');
+      const deleteBtn = $('#deleteBtn');
+      const projectSelect = $('#projectSelect'), helper = $('#emptyHelper'), helperSync = $('#helperSync'), helperOpen = $('#helperOpen');
       const goalBtn=$('#goalBtn'), goalLabel=$('#goalLabel'), goalProgress=$('#goalProgress'), goalInside=$('#goalInside');
+      const pickedPill = $('#pickedPill');
       const CIRC = 2 * Math.PI * 15; goalProgress.setAttribute('stroke-dasharray', String(CIRC));
+
+      const params = new URLSearchParams(location.search);
+      const projectsUrl = params.get('projects_url') || '';
 
       const pad = n => String(n).padStart(2,'0');
       const dateKey = (d) => [d.getFullYear(), pad(d.getMonth()+1), pad(d.getDate())].join('-');
       const prettyDate = (d) => new Intl.DateTimeFormat(undefined, { weekday:'long', month:'long', day:'numeric'}).format(d);
 
-      const STORAGE = 'wdt:v7.1.2';
+      function startOfWeek(d) { const c = new Date(d.getFullYear(), d.getMonth(), d.getDate()); const day = c.getDay() || 7; if (day > 1) c.setDate(c.getDate() - (day - 1)); c.setHours(0,0,0,0); return c; }
+      function endOfWeek(d) { const s = startOfWeek(d); const e = new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999); return e; }
+      function weekRangeKeys(d) { const s = startOfWeek(d), e = endOfWeek(d); const keys = []; const cur = new Date(s); while (cur <= e) { keys.push(dateKey(cur)); cur.setDate(cur.getDate()+1); } return { keys, startISO: s.toISOString().slice(0,10), endISO: e.toISOString().slice(0,10) }; }
+
+      const STORAGE = 'wdt:v7.2.2:nocreate:helper';
       let data = Object.assign({
         totals:{},
         status:'stopped', startCursor:null, sessionStart:null,
         token:null, theme:'light',
-        goalMs:0,
-        clients:[{name:'General'}], projects:[{name:'Unassigned'}],
-        currentClient:0, currentProject:0,
+        weeklyGoalMs: 0,
+        projects: [], currentProject: -1,
         lastSessionId:null, lastPageId:null
       }, JSON.parse(localStorage.getItem(STORAGE) || '{}'));
       const save = () => localStorage.setItem(STORAGE, JSON.stringify(data));
+
+      if (projectsUrl) helperOpen.href = projectsUrl; else helperOpen.style.display = 'none';
 
       if (location.hash.includes('access_token=')) {
         const p = new URLSearchParams(location.hash.slice(1));
         data.token = decodeURIComponent(p.get('access_token'));
         save(); history.replaceState({}, document.title, location.pathname + location.search);
+        setTimeout(syncFromNotion, 0);
       }
 
       const applyTheme = () => { document.body.setAttribute('data-theme', data.theme==='dark' ? 'dark' : 'light'); themeBtn.textContent = data.theme==='dark' ? '☀️' : '🌙'; };
       themeBtn.addEventListener('click', () => { data.theme = data.theme==='dark' ? 'light' : 'dark'; save(); applyTheme(); }); applyTheme();
 
-      const pickedPill = $('#pickedPill');
-      const updatePill = ()=>{
-        pickedPill.textContent = `Tag: ${(data.clients[data.currentClient]||{name:'—'}).name} / ${(data.projects[data.currentProject]||{name:'—'}).name}`;
-      };
+      function renderProjects() {
+        const opts = ['<option value="">— Select a project —</option>']
+          .concat(data.projects.map((p,i)=>`<option value="${i}" ${i===data.currentProject?'selected':''}>${p.name}</option>`));
+        projectSelect.innerHTML = opts.join('');
+        helper.style.display = data.projects.length ? 'none' : 'block';
+        updatePill();
+      }
+      function updatePill() {
+        const p = data.currentProject>=0 ? data.projects[data.currentProject] : null;
+        pickedPill.textContent = `Selected: ${p? p.name : '—'} (Client: ${p && p.clientName ? p.clientName : '—'})`;
+      }
 
       const updateStatus = () => { statusEl.textContent = data.token ? (data.status.charAt(0).toUpperCase()+data.status.slice(1)) : "Not connected"; connectBtn.style.display = data.token ? 'none' : 'inline-block'; };
       connectBtn.addEventListener('click', () => { const ret = encodeURIComponent(location.href); window.location.href = '/.netlify/functions/auth-start?return=' + ret; });
 
-      // Combobox helpers
-      const renderDatalist = (el, items) => { el.innerHTML = items.map(it => `<option value="${it.name}"></option>`).join(''); };
-      const syncComboFromInputs = () => {
-        const ci = clientInput.value.trim();
-        const pi = projectInput.value.trim();
-        if (ci) {
-          let idx = data.clients.findIndex(x => x.name.toLowerCase() === ci.toLowerCase());
-          if (idx === -1) { data.clients.push({ name: ci }); idx = data.clients.length-1; }
-          data.currentClient = idx;
-        }
-        if (pi) {
-          let idx = data.projects.findIndex(x => x.name.toLowerCase() === pi.toLowerCase());
-          if (idx === -1) { data.projects.push({ name: pi }); idx = data.projects.length-1; }
-          data.currentProject = idx;
-        }
-        save(); renderDatalist(clientList, data.clients); renderDatalist(projectList, data.projects); updatePill();
-      };
-
-      const addItem = (listName) => {
-        const name = prompt(`Add ${listName} name`); if (!name) return;
-        data[listName+'s'].push({ name }); save();
-        renderDatalist(listName==='client' ? clientList : projectList, listName==='client' ? data.clients : data.projects);
-        if (listName==='client') { clientInput.value = name; data.currentClient = data.clients.length-1; }
-        else { projectInput.value = name; data.currentProject = data.projects.length-1; }
-        updatePill();
-        if (data.status==='running') { pause(); setTimeout(go,0); }
-      };
-      addClientBtn.addEventListener('click', () => addItem('client'));
-      addProjectBtn.addEventListener('click', () => addItem('project'));
-      clientInput.addEventListener('change', syncComboFromInputs);
-      projectInput.addEventListener('change', syncComboFromInputs);
+      async function syncFromNotion() {
+        if (!data.token) { alert('Connect Notion first'); return; }
+        try {
+          const res = await fetch('/.netlify/functions/lists', { headers: { 'Authorization': 'Bearer ' + data.token } });
+          if (!res.ok) { const t = await res.text(); throw new Error(t); }
+          const { projects = [] } = await res.json();
+          data.projects = projects;
+          data.currentProject = data.projects.length ? 0 : -1;
+          save(); renderProjects();
+        } catch (e) { alert('Could not load projects from Notion: ' + e.message); }
+      }
+      syncBtn.addEventListener('click', syncFromNotion);
+      helperSync.addEventListener('click', syncFromNotion);
+      projectSelect.addEventListener('change', () => { const v = projectSelect.value; data.currentProject = v==='' ? -1 : Number(v); save(); updatePill(); });
 
       const midnightAfter = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+1, 0,0,0,0);
       const addMsTo = (day, ms) => { data.totals[day] = (data.totals[day]||0) + ms; };
       const accrueUntilNow = () => { if (data.status !== 'running' || !data.startCursor) return; let start = new Date(data.startCursor); const now = new Date(); while (start < now) { const boundary = midnightAfter(start); const chunkEnd = boundary < now ? boundary : now; addMsTo(dateKey(start), chunkEnd - start); start = chunkEnd; } data.startCursor = new Date().toISOString(); };
 
+      function weeklyMsWorked() { const { keys } = weekRangeKeys(new Date()); return keys.reduce((sum,k)=> sum + (data.totals[k]||0), 0); }
       function renderGoal() {
-        if (!data.goalMs) { goalLabel.textContent = 'No goal'; goalProgress.style.strokeDashoffset = CIRC; goalInside.textContent = '0%'; return; }
-        const now = new Date(); const kNow = dateKey(now); const todayMs = data.totals[kNow] || 0;
-        const ratio = Math.max(0, Math.min(1, todayMs / data.goalMs));
+        const week = weekRangeKeys(new Date());
+        goalLabel.textContent = data.weeklyGoalMs ? `${(data.weeklyGoalMs/3600000).toFixed(1)}h goal • ${week.startISO} → ${week.endISO}` : 'No weekly goal';
+        const worked = weeklyMsWorked();
+        const ratio = data.weeklyGoalMs ? Math.max(0, Math.min(1, worked / data.weeklyGoalMs)) : 0;
         goalProgress.style.strokeDashoffset = (1 - ratio) * CIRC;
         const pct = Math.round(ratio * 100);
-        goalInside.textContent = pct + '%';
-        goalLabel.textContent = `${(data.goalMs/3600000).toFixed(1)}h goal`;
+        goalInside.textContent = data.weeklyGoalMs ? (pct + '%\nWK') : '0%\nWK';
       }
-      goalBtn.addEventListener('click', () => { const hours = Number(prompt('Set daily goal (hours):', data.goalMs ? (data.goalMs/3600000).toFixed(1) : '8')); if (!hours || hours <= 0) return; data.goalMs = Math.round(hours * 3600000); save(); renderGoal(); });
+      goalBtn.addEventListener('click', () => {
+        const current = data.weeklyGoalMs ? (data.weeklyGoalMs/3600000).toFixed(1) : '40';
+        const hours = Number(prompt('Set weekly goal (hours, Mon → Sun):', current));
+        if (!hours || hours <= 0) return;
+        data.weeklyGoalMs = Math.round(hours * 3600000);
+        save(); renderGoal();
+      });
 
-      const currentNames = () => {
-        const c = (data.clients[data.currentClient] || {name:'General'}).name;
-        const p = (data.projects[data.currentProject] || {name:'Unassigned'}).name;
-        return { client: c, project: p };
-      };
-
-      const guardDefaults = () => {
-        const {client, project} = currentNames();
-        const usingDefaults = (client==='General' && project==='Unassigned');
-        if (usingDefaults) {
-          return confirm('Start with Client "General" and Project "Unassigned"?');
-        }
-        return true;
-      };
+      function selectedNames() {
+        const p = data.currentProject>=0 ? data.projects[data.currentProject] : null;
+        return { project: p?.name || "", client: p?.clientName || "" };
+      }
 
       const go = () => {
         if (!data.token) { alert('Connect Notion first'); return; }
-        syncComboFromInputs();
-        if (!guardDefaults()) return;
+        if (data.currentProject < 0 || !data.projects.length) { alert('Pick a Project from the dropdown first.'); return; }
         if (data.status === 'running') return;
         const nowIso = new Date().toISOString();
-        data.sessionStart = nowIso;
-        data.startCursor = nowIso;
-        data.lastSessionId = nowIso;
-        data.lastPageId = null;
+        data.sessionStart = nowIso; data.startCursor = nowIso; data.lastSessionId = nowIso; data.lastPageId = null;
         data.status = 'running'; save(); updateStatus();
       };
-
       const pause = async () => {
         if (data.status !== 'running') return;
         accrueUntilNow(); const endIso = new Date().toISOString(); const startIso = data.sessionStart;
         data.startCursor = null; data.sessionStart = null; data.status = 'paused'; save(); updateStatus(); renderGoal();
-        const {client, project} = currentNames();
+        const {client, project} = selectedNames();
         await sendSession(startIso, endIso, client, project);
       };
       const stop = async () => {
         if (data.status === 'running') {
           accrueUntilNow(); const endIso = new Date().toISOString(); const startIso = data.sessionStart;
           data.startCursor = null; data.sessionStart = null; data.status = 'stopped'; save(); updateStatus(); renderGoal();
-          const {client, project} = currentNames();
+          const {client, project} = selectedNames();
           await sendSession(startIso, endIso, client, project);
         } else { data.status = 'stopped'; save(); updateStatus(); }
       };
-
       goBtn.addEventListener('click', go); pauseBtn.addEventListener('click', pause); stopBtn.addEventListener('click', stop);
       window.addEventListener('keydown', (e) => { if (e.code==='Space') { e.preventDefault(); data.status==='running'?pause():go(); } if (e.key.toLowerCase()==='s') stop(); });
 
+      async function refreshWeekTotals() {
+        if (!data.token) return;
+        try {
+          const wk = weekRangeKeys(new Date());
+          const r = await fetch(`/.netlify/functions/totals?from=${wk.startISO}&to=${wk.endISO}`, { headers: { 'Authorization':'Bearer '+data.token } });
+          if (r.ok) {
+            const j = await r.json();
+            const days = j.days || {};
+            Object.keys(days).forEach(k => { data.totals[k] = days[k].totalMs; });
+            save();
+          }
+        } catch (_) {}
+      }
       async function sendSession(start, end, client, project) {
         if (!data.token) return;
         try {
@@ -299,29 +296,10 @@
             const j = await res.json();
             if (j && j.pageId) { data.lastPageId = j.pageId; save(); }
           }
-          const now = new Date(); const from = new Date(); from.setDate(now.getDate()-2);
-          const r = await fetch(`/.netlify/functions/totals?from=${from.toISOString().slice(0,10)}&to=${now.toISOString().slice(0,10)}`, { headers: { 'Authorization': 'Bearer ' + data.token } });
-          if (r.ok) { const j2 = await r.json(); const days = j2.days || {}; Object.keys(days).forEach(k => { data.totals[k] = days[k].totalMs; }); save(); }
+          await refreshWeekTotals();
         } catch (e) { console.warn('sendSession failed', e); }
       }
 
-      // Reassign last entry
-      reassignBtn.addEventListener('click', async () => {
-        if (!data.token) { alert('Connect Notion first'); return; }
-        if (!data.lastSessionId) { alert('No recent session to reassign yet. Pause/Stop once first.'); return; }
-        syncComboFromInputs();
-        const {client, project} = currentNames();
-        if (!confirm(`Reassign your last entry to\nClient: ${client}\nProject: ${project}?`)) return;
-        try {
-          const res = await fetch('/.netlify/functions/reassign', {
-            method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+data.token},
-            body: JSON.stringify({ sessionId: data.lastSessionId, client, project })
-          });
-          if (res.ok) { alert('Last entry updated.'); } else { const t=await res.text(); alert('Could not update: '+t); }
-        } catch (e) { alert('Network error reassigning.'); }
-      });
-
-      // Delete last entry
       deleteBtn.addEventListener('click', async () => {
         if (!data.token) { alert('Connect Notion first'); return; }
         if (!data.lastSessionId && !data.lastPageId) { alert('No recent session to delete yet. Pause/Stop once first.'); return; }
@@ -332,7 +310,7 @@
             headers: {'Content-Type':'application/json','Authorization':'Bearer '+data.token},
             body: JSON.stringify({ sessionId: data.lastSessionId, pageId: data.lastPageId })
           });
-          if (res.ok) { alert('Last entry deleted.'); } else { const t=await res.text(); alert('Could not delete: '+t); }
+          if (res.ok) { alert('Last entry deleted.'); await refreshWeekTotals(); } else { const t=await res.text(); alert('Could not delete: '+t); }
         } catch (e) { alert('Network error deleting.'); }
       });
 
@@ -353,13 +331,10 @@
         renderGoal(); updatePill();
       }
 
-      const init = () => {
-        if (!data.clients.length) data.clients = [{name:'General'}];
-        if (!data.projects.length) data.projects = [{name:'Unassigned'}];
-        renderDatalist(clientList, data.clients); renderDatalist(projectList, data.projects);
-        clientInput.value = (data.clients[data.currentClient]||{name:''}).name;
-        projectInput.value = (data.projects[data.currentProject]||{name:''}).name;
-        updateStatus(); render(); save();
+      const init = async () => {
+        updateStatus();
+        if (data.token) await syncFromNotion();
+        await refreshWeekTotals(); render(); save();
       };
 
       setInterval(() => { accrueUntilNow(); render(); save(); }, 1000);
