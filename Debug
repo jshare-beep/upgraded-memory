@@ -1,0 +1,18 @@
+export async function handler(event, context) {
+  return {
+    statusCode: 200,
+    body: JSON.stringify(
+      {
+        NOTION_CLIENT_ID: process.env.NOTION_CLIENT_ID || "❌ not found",
+        NOTION_CLIENT_SECRET: process.env.NOTION_CLIENT_SECRET
+          ? "✅ exists"
+          : "❌ not found",
+        NOTION_PROJECTS_DB_ID: process.env.NOTION_PROJECTS_DB_ID || "❌ not found",
+        NOTION_CLIENTS_DB_ID: process.env.NOTION_CLIENTS_DB_ID || "❌ not found",
+        NOTION_TIMELOG_DB_ID: process.env.NOTION_TIMELOG_DB_ID || "❌ not found",
+      },
+      null,
+      2
+    ),
+  };
+}
