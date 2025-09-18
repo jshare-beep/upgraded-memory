@@ -1,324 +1,262 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Workday Timer – v7.2.5</title>
-  <style>
-    :root {
-      --bg: transparent;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --accent: #936B4D;
-      --border: #d9d3cd;
-      --radius: 20px;
-      --go: #6B8E62;
-      --pause: #C49A6C;
-      --stop: #C9645B;
-      --btn-text: #1a1a1a;
-      --btn-text-inv: #ffffff;
-      --goal-track: #e6e0da;
-      --goal-progress: #936B4D;
-    }
-    [data-theme="dark"] {
-      --card: #0f1115;
-      --text: #f3f4f6;
-      --muted: #a1a1aa;
-      --accent: #d1b59a;
-      --border: #2a2f3a;
-      --go: #86A67C;
-      --pause: #D7B28B;
-      --stop: #D07B73;
-      --btn-text: #0f1115;
-      --btn-text-inv: #121212;
-      --goal-track: #2a2f3a;
-      --goal-progress: #d1b59a;
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body { margin: 0; padding: 0; font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif; font-size: 17px; background: var(--bg); color: var(--text); }
-    .widget { width: 100%; max-width: none; margin: 0; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-    .title { font-weight: 800; letter-spacing: 0.2px; font-size: clamp(24px, 3vw, 40px); color: var(--accent); }
-    .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .status { font-size: 12px; color: var(--muted); padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; }
-    .topbar { display:flex; align-items:center; gap:8px; }
-    .connect { background: var(--accent); color: white; border-color: var(--accent); }
-    .bar { display:flex; flex-wrap:wrap; gap:12px; margin: 8px 0 12px; align-items:center; }
-    .group { display:flex; flex-direction:column; gap:6px; flex: 1 1 260px; }
-    label { font-size:12px; color: var(--muted); }
-    select.combo { width: 100%; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; }
-    .btns { display:flex; flex-wrap:wrap; gap:8px; }
-    button { appearance:none; border:1px solid var(--border); padding:10px 16px; border-radius: 999px; font-weight:600; cursor:pointer; background:#fff0; color: var(--text); transition: transform .04s ease; }
-    button:active { transform: translateY(1px); }
-    .go{ background: var(--go); color: var(--btn-text-inv); border-color: transparent; }
-    .pause{ background: var(--pause); color: var(--btn-text); border-color: transparent; }
-    .stop{ background: var(--stop); color:#fff; border-color: transparent; }
-    .ghost{ border-color: var(--border); }
-    .row { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center; padding:12px; border:1px solid var(--border); border-radius:12px; margin-bottom:10px; }
-    .today-label { font-size: 14px; color: var(--muted); }
-    .big { font-variant-numeric: tabular-nums; font-size: clamp(32px, 5.6vw, 60px); line-height:1; font-weight: 800; }
-    table { width:100%; border-collapse:collapse; margin-top:6px; }
-    th, td { padding: 8px 8px; text-align:left; }
-    thead th{ font-size:12px; color:var(--muted); font-weight:700; border-bottom:1px solid var(--border); }
-    tbody td{ border-bottom:1px solid var(--border); font-variant-numeric: tabular-nums; }
-    .hint{ margin-top:6px; font-size:12px; color:var(--muted); }
-    .ring { position: relative; width: 80px; height: 80px; }
-    .ring svg { position: absolute; inset: 0; }
-    .ring .innerText { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--muted); pointer-events:none; text-align:center; white-space:pre-line; }
-    .helper { margin-top: 6px; padding: 8px 10px; border: 1px dashed var(--border); border-radius: 12px; font-size: 13px; color: var(--muted); display:none; }
-    .helper .row { display:flex; gap:8px; align-items:center; border:0; padding:0; margin:0; }
-    .helper button { padding:6px 10px; border-radius: 999px; }
-    .helper a { color: var(--accent); text-decoration:none; }
-  </style>
-</head>
-<body>
-  <div class="widget" role="application" aria-label="Workday Timer">
-    <header>
-      <div>
-        <div class="title">Let's Log Some Hours</div>
-        <div class="subtitle">Fast, friendly time tracking</div>
-      </div>
-      <div class="topbar">
-        <button class="ghost" id="themeBtn" title="Toggle dark mode">🌙</button>
-        <button class="ghost" id="syncBtn" title="Refresh projects from Notion">↻</button>
-        <button class="connect" id="connectBtn">Connect Notion</button>
-        <div class="status" id="status">Not connected</div>
-      </div>
-    </header>
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Workday Timer – v7.2.9</title>
+<style>
+:root{--bg:transparent;--card:#ffffff;--text:#1f2937;--muted:#6b7280;--accent:#936B4D;--border:#d9d3cd;--radius:20px;--go:#6B8E62;--pause:#C49A6C;--stop:#C9645B;--btn-text:#1a1a1a;--btn-text-inv:#ffffff;--goal-track:#e6e0da;--goal-progress:#936B4D}
+[data-theme="dark"]{--card:#0f1115;--text:#f3f4f6;--muted:#a1a1aa;--accent:#d1b59a;--border:#2a2f3a;--go:#86A67C;--pause:#D7B28B;--stop:#D07B73;--btn-text:#0f1115;--btn-text-inv:#121212;--goal-track:#2a2f3a;--goal-progress:#d1b59a}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;padding:0;font-family:ui-serif,Georgia,serif;font-size:17px;background:var(--bg);color:var(--text)}
+.widget{width:100%;max-width:none;margin:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.title{font-weight:800;letter-spacing:.2px;font-size:clamp(24px,3vw,40px);color:var(--accent)}.subtitle{font-size:12px;color:var(--muted);margin-top:2px}.status{font-size:12px;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:999px}.topbar{display:flex;align-items:center;gap:8px}.connect{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bar{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 12px;align-items:center}.group{display:flex;flex-direction:column;gap:6px;flex:1 1 260px}label{font-size:12px;color:var(--muted)}select.combo{width:100%;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:999px;padding:8px 12px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}button{appearance:none;border:1px solid var(--border);padding:10px 16px;border-radius:999px;font-weight:600;cursor:pointer;background:#fff0;color:var(--text);transition:transform .04s ease}button:active{transform:translateY(1px)}.go{background:var(--go);color:var(--btn-text-inv);border-color:transparent}.pause{background:var(--pause);color:var(--btn-text);border-color:transparent}.stop{background:var(--stop);color:#fff;border-color:transparent}.ghost{border-color:var(--border)}
+.row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px}.today-label{font-size:14px;color:var(--muted)}.big{font-variant-numeric:tabular-nums;font-size:clamp(32px,5.6vw,60px);line-height:1;font-weight:800}
+table{width:100%;border-collapse:collapse;margin-top:6px}th,td{padding:8px 8px;text-align:left}thead th{font-size:12px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)}tbody td{border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+.hint{margin-top:6px;font-size:12px;color:var(--muted)}.ring{position:relative;width:80px;height:80px}.ring svg{position:absolute;inset:0}.ring .innerText{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);pointer-events:none;text-align:center;white-space:pre-line}
+.helper{margin-top:6px;padding:8px 10px;border:1px dashed var(--border);border-radius:12px;font-size:13px;color:var(--muted);display:none}.helper .row{display:flex;gap:8px;align-items:center;border:0;padding:0;margin:0}.helper button{padding:6px 10px;border-radius:999px}.helper a{color:var(--accent);text-decoration:none}
+</style></head><body>
+<div class="widget" role="application" aria-label="Workday Timer">
+<header>
+  <div>
+    <div class="title">Let's Log Some Hours</div>
+    <div class="subtitle">Fast, friendly time tracking</div>
+  </div>
+  <div class="topbar">
+    <button class="ghost" id="themeBtn" title="Toggle dark mode">🌙</button>
+    <button class="ghost" id="syncBtn" title="Refresh projects from Notion">↻</button>
+    <button class="connect" id="connectBtn">Connect Notion</button>
+    <div class="status" id="status">Not connected</div>
+  </div>
+</header>
 
-    <div class="bar">
-      <div class="group">
-        <label for="projectSelect">Project</label>
-        <select id="projectSelect" class="combo">
-          <option value="">— Select a project —</option>
-        </select>
-        <div id="emptyHelper" class="helper">
-          <div class="row">
-            <span>Projects list looks empty.</span>
-            <button class="ghost" id="helperSync">↻ Try sync</button>
-            <a id="helperOpen" href="#" target="_blank" rel="noopener">Open Projects</a>
-          </div>
-          <div style="margin-top:6px;">After adding projects in Notion, click ↻ here to refresh.</div>
-        </div>
+<div class="bar">
+  <div class="group">
+    <label for="projectSelect">Project</label>
+    <select id="projectSelect" class="combo">
+      <option value="">— Select a project —</option>
+    </select>
+    <div id="emptyHelper" class="helper">
+      <div class="row">
+        <span>Projects list looks empty.</span>
+        <button class="ghost" id="helperSync">↻ Try sync</button>
+        <a id="helperOpen" href="#" target="_blank" rel="noopener">Open Projects</a>
       </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <div class="today-label" id="todayLabel"></div>
-        <div class="big" id="todayBig">00:00:00</div>
-        <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
-          <div class="ring">
-            <svg viewBox="0 0 36 36" aria-hidden="true">
-              <circle cx="18" cy="18" r="15" fill="none" stroke-width="6" stroke="var(--goal-track)"></circle>
-              <circle id="goalProgress" cx="18" cy="18" r="15" fill="none" stroke-width="6" stroke-linecap="round" stroke="var(--goal-progress)" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle>
-            </svg>
-            <div class="innerText" id="goalInside">0%\nWK</div>
-          </div>
-          <button class="ghost" id="goalBtn" title="Set weekly goal (hours)">Weekly goal</button>
-          <span id="goalLabel" class="today-label"></span>
-        </div>
-      </div>
-      <div class="btns" role="group" aria-label="Timer controls">
-        <button class="go" id="goBtn">Go</button>
-        <button class="pause" id="pauseBtn">Pause</button>
-        <button class="stop" id="stopBtn">Stop</button>
-        <button class="ghost" id="deleteBtn" title="Delete your most recent time entry">Oops! Delete last</button>
-      </div>
-    </div>
-
-    <table aria-label="Daily totals">
-      <thead><tr><th>Day</th><th>Time worked</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-
-    <div class="hint">
-      Pick an existing Project. The Client is taken from that project. Weekly ring tracks Monday → Sunday.
-      <div class="muted">Tip: append <code>?projects_url=YOUR_NOTION_PROJECTS_URL</code> to the widget URL so the “Open Projects” link points to your database.</div>
+      <div style="margin-top:6px;">After adding projects in Notion, click ↻ here to refresh.</div>
     </div>
   </div>
+</div>
 
-  <script>
-    (function(){
-      const $ = sel => document.querySelector(sel);
-      const statusEl = $('#status'), connectBtn = $('#connectBtn'), themeBtn = $('#themeBtn'), syncBtn = $('#syncBtn');
-      const rowsEl = $('#rows'), todayBig = $('#todayBig'), todayLabel = $('#todayLabel');
-      const goBtn = $('#goBtn'), pauseBtn = $('#pauseBtn'), stopBtn = $('#stopBtn');
-      const deleteBtn = $('#deleteBtn');
-      const projectSelect = $('#projectSelect'), helper = $('#emptyHelper'), helperSync = $('#helperSync'), helperOpen = $('#helperOpen');
-      const goalBtn=$('#goalBtn'), goalLabel=$('#goalLabel'), goalProgress=$('#goalProgress'), goalInside=$('#goalInside');
-      const CIRC = 2 * Math.PI * 15; goalProgress.setAttribute('stroke-dasharray', String(CIRC));
+<div class="row">
+  <div>
+    <div class="today-label" id="todayLabel"></div>
+    <div class="big" id="todayBig">00:00:00</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+      <div class="ring">
+        <svg viewBox="0 0 36 36" aria-hidden="true">
+          <circle cx="18" cy="18" r="15" fill="none" stroke-width="6" stroke="var(--goal-track)"></circle>
+          <circle id="goalProgress" cx="18" cy="18" r="15" fill="none" stroke-width="6" stroke-linecap="round" stroke="var(--goal-progress)" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle>
+        </svg>
+        <div class="innerText" id="goalInside">0%\nWK</div>
+      </div>
+      <button class="ghost" id="goalBtn" title="Set weekly goal (hours)">Weekly goal</button>
+      <span id="goalLabel" class="today-label"></span>
+    </div>
+  </div>
+  <div class="btns" role="group" aria-label="Timer controls">
+    <button class="go" id="goBtn">Go</button>
+    <button class="pause" id="pauseBtn">Pause</button>
+    <button class="stop" id="stopBtn">Stop</button>
+    <button class="ghost" id="deleteBtn" title="Delete your most recent time entry">Oops! Delete last</button>
+  </div>
+</div>
 
-      const params = new URLSearchParams(location.search);
-      const projectsUrl = params.get('projects_url') || '';
-      if (projectsUrl) helperOpen.href = projectsUrl; else helperOpen.style.display = 'none';
+<table aria-label="Daily totals">
+  <thead><tr><th>Day</th><th>Time worked</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
 
-      const pad = n => String(n).padStart(2,'0');
-      const dateKey = (d) => [d.getFullYear(), pad(d.getMonth()+1), pad(d.getDate())].join('-');
-      const prettyDate = (d) => new Intl.DateTimeFormat(undefined, { weekday:'long', month:'long', day:'numeric'}).format(d);
+<div class="hint">
+  Pick an existing Project. The Client is taken from that project. Weekly ring tracks Monday → Sunday.
+  <div class="muted">Tip: append <code>?projects_url=YOUR_NOTION_PROJECTS_URL</code> to the widget URL so the “Open Projects” link points to your database.</div>
+</div>
+</div>
 
-      function startOfWeek(d) { const c = new Date(d.getFullYear(), d.getMonth(), d.getDate()); const day = c.getDay() || 7; if (day > 1) c.setDate(c.getDate() - (day - 1)); c.setHours(0,0,0,0); return c; }
-      function endOfWeek(d) { const s = startOfWeek(d); const e = new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999); return e; }
-      function weekRangeKeys(d) { const s = startOfWeek(d), e = endOfWeek(d); const keys = []; const cur = new Date(s); while (cur <= e) { keys.push(dateKey(cur)); cur.setDate(cur.getDate()+1); } return { keys, startISO: s.toISOString().slice(0,10), endISO: e.toISOString().slice(0,10) }; }
+<script>
+(function(){
+  const $ = sel => document.querySelector(sel);
+  const statusEl = $('#status'), connectBtn = $('#connectBtn'), themeBtn = $('#themeBtn'), syncBtn = $('#syncBtn');
+  const rowsEl = $('#rows'), todayBig = $('#todayBig'), todayLabel = $('#todayLabel');
+  const goBtn = $('#goBtn'), pauseBtn = $('#pauseBtn'), stopBtn = $('#stopBtn');
+  const deleteBtn = $('#deleteBtn');
+  const projectSelect = $('#projectSelect'), helper = $('#emptyHelper'), helperSync = $('#helperSync'), helperOpen = $('#helperOpen');
+  const goalBtn=$('#goalBtn'), goalLabel=$('#goalLabel'), goalProgress=$('#goalProgress'), goalInside=$('#goalInside');
+  const CIRC = 2 * Math.PI * 15; goalProgress.setAttribute('stroke-dasharray', String(CIRC));
 
-      const STORAGE = 'wdt:v7.2.5:brand:pinned';
-      let data = Object.assign({
-        totals:{},
-        status:'stopped', startCursor:null, sessionStart:null,
-        token:null, theme:'light',
-        weeklyGoalMs: 0,
-        projects: [], currentProject: -1,
-        lastSessionId:null, lastPageId:null
-      }, JSON.parse(localStorage.getItem(STORAGE) || '{}'));
-      const save = () => localStorage.setItem(STORAGE, JSON.stringify(data));
+  const params = new URLSearchParams(location.search);
+  const projectsUrl = params.get('projects_url') || '';
+  if (projectsUrl) helperOpen.href = projectsUrl; else helperOpen.style.display = 'none';
 
-      if (location.hash.includes('access_token=')) {
-        const p = new URLSearchParams(location.hash.slice(1));
-        data.token = decodeURIComponent(p.get('access_token'));
-        save(); history.replaceState({}, document.title, location.pathname + location.search);
-        setTimeout(syncFromNotion, 0);
+  const pad = n => String(n).padStart(2,'0');
+  const dateKey = (d) => [d.getFullYear(), pad(d.getMonth()+1), pad(d.getDate())].join('-');
+
+  function startOfWeek(d) { const c = new Date(d.getFullYear(), d.getMonth(), d.getDate()); const day = c.getDay() || 7; if (day > 1) c.setDate(c.getDate() - (day - 1)); c.setHours(0,0,0,0); return c; }
+  function endOfWeek(d) { const s = startOfWeek(d); const e = new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999); return e; }
+  function weekRangeKeys(d) { const s = startOfWeek(d), e = endOfWeek(d); const keys = []; const cur = new Date(s); while (cur <= e) { keys.push(dateKey(cur)); cur.setDate(cur.getDate()+1); } return { keys, startISO: s.toISOString().slice(0,10), endISO: e.toISOString().slice(0,10) }; }
+
+  const STORAGE = 'wdt:v7.2.9:full';
+  let data = Object.assign({
+    totals:{},
+    status:'stopped', startCursor:null, sessionStart:null,
+    token:null, theme:'light',
+    weeklyGoalMs: 0,
+    projects: [], currentProject: -1,
+    lastSessionId:null, lastPageId:null
+  }, JSON.parse(localStorage.getItem(STORAGE) || '{}'));
+  const save = () => localStorage.setItem(STORAGE, JSON.stringify(data));
+
+  if (location.hash.includes('access_token=')) {
+    const p = new URLSearchParams(location.hash.slice(1));
+    data.token = decodeURIComponent(p.get('access_token'));
+    save(); history.replaceState({}, document.title, location.pathname + location.search);
+    setTimeout(syncFromNotion, 0);
+  }
+
+  const applyTheme = () => { document.body.setAttribute('data-theme', data.theme==='dark' ? 'dark' : 'light'); themeBtn.textContent = data.theme==='dark' ? '☀️' : '🌙'; };
+  themeBtn.addEventListener('click', () => { data.theme = data.theme==='dark' ? 'light' : 'dark'; save(); applyTheme(); }); applyTheme();
+
+  function renderProjects() {
+    const opts = ['<option value="">— Select a project —</option>']
+      .concat(data.projects.map((p,i)=>`<option value="${i}" ${i===data.currentProject?'selected':''}>${p.name}</option>`));
+    projectSelect.innerHTML = opts.join('');
+    helper.style.display = data.projects.length ? 'none' : 'block';
+  }
+
+  const updateStatus = () => { statusEl.textContent = data.token ? (data.status.charAt(0).toUpperCase()+data.status.slice(1)) : "Not connected"; connectBtn.style.display = data.token ? 'none' : 'inline-block'; };
+  connectBtn.addEventListener('click', () => { const ret = encodeURIComponent(location.href); window.location.href = '/.netlify/functions/auth-start?return=' + ret; });
+
+  async function syncFromNotion() {
+    if (!data.token) { alert('Connect Notion first'); return; }
+    try {
+      const res = await fetch('/.netlify/functions/lists', { headers: { 'Authorization': 'Bearer ' + data.token } });
+      if (!res.ok) { const t = await res.text(); throw new Error(t); }
+      const { projects = [] } = await res.json();
+      data.projects = projects;
+      data.currentProject = data.projects.length ? 0 : -1;
+      save(); renderProjects();
+    } catch (e) { alert('Could not load projects from Notion: ' + e.message); }
+  }
+  syncBtn.addEventListener('click', syncFromNotion);
+  helperSync.addEventListener('click', syncFromNotion);
+  projectSelect.addEventListener('change', () => { const v = projectSelect.value; data.currentProject = v==='' ? -1 : Number(v); save(); });
+
+  const midnightAfter = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+1, 0,0,0,0);
+  const addMsTo = (day, ms) => { data.totals[day] = (data.totals[day]||0) + ms; };
+  const accrueUntilNow = () => { if (data.status !== 'running' || !data.startCursor) return; let start = new Date(data.startCursor); const now = new Date(); while (start < now) { const boundary = midnightAfter(start); const chunkEnd = boundary < now ? boundary : now; addMsTo([start.getFullYear(), String(start.getMonth()+1).padStart(2,'0'), String(start.getDate()).padStart(2,'0')].join('-'), chunkEnd - start); start = boundary; } data.startCursor = new Date().toISOString(); };
+
+  function weeklyMsWorked() { const { keys } = weekRangeKeys(new Date()); return keys.reduce((sum,k)=> sum + (data.totals[k]||0), 0); }
+  function renderGoal() {
+    const week = weekRangeKeys(new Date());
+    goalLabel.textContent = data.weeklyGoalMs ? `${(data.weeklyGoalMs/3600_000).toFixed(1)}h goal • ${week.startISO} → ${week.endISO}` : 'No weekly goal';
+    const worked = weeklyMsWorked();
+    const ratio = data.weeklyGoalMs ? Math.max(0, Math.min(1, worked / data.weeklyGoalMs)) : 0;
+    const CIRC = 2 * Math.PI * 15;
+    goalProgress.style.strokeDashoffset = (1 - ratio) * CIRC;
+    const pct = Math.round(ratio * 100);
+    goalInside.textContent = data.weeklyGoalMs ? (pct + '%\nWK') : '0%\nWK';
+  }
+  goalBtn.addEventListener('click', () => {
+    const current = data.weeklyGoalMs ? (data.weeklyGoalMs/3600_000).toFixed(1) : '40';
+    const hours = Number(prompt('Set weekly goal (hours, Mon → Sun):', current));
+    if (!hours || hours <= 0) return;
+    data.weeklyGoalMs = Math.round(hours * 3600_000);
+    save(); renderGoal();
+  });
+
+  function selectedIds() {
+    const p = data.currentProject>=0 ? data.projects[data.currentProject] : null;
+    return { projectId: p?.id || "", clientId: p?.clientId || "" };
+  }
+
+  const go = () => {
+    if (!data.token) { alert('Connect Notion first'); return; }
+    if (data.currentProject < 0 || !data.projects.length) { alert('Pick a Project from the dropdown first.'); return; }
+    if (data.status === 'running') return;
+    const nowIso = new Date().toISOString();
+    data.sessionStart = nowIso; data.startCursor = nowIso; data.lastSessionId = nowIso; data.lastPageId = null;
+    data.status = 'running'; save(); updateStatus();
+  };
+  const pause = async () => {
+    if (data.status !== 'running') return;
+    accrueUntilNow(); const endIso = new Date().toISOString(); const startIso = data.sessionStart;
+    data.startCursor = null; data.sessionStart = null; data.status = 'paused'; save(); updateStatus(); renderGoal();
+    const {clientId, projectId} = selectedIds();
+    await sendSession(startIso, endIso, clientId, projectId);
+  };
+  const stop = async () => {
+    if (data.status === 'running') {
+      accrueUntilNow(); const endIso = new Date().toISOString(); const startIso = data.sessionStart;
+      data.startCursor = null; data.sessionStart = null; data.status = 'stopped'; save(); updateStatus(); renderGoal();
+      const {clientId, projectId} = selectedIds();
+      await sendSession(startIso, endIso, clientId, projectId);
+    } else { data.status = 'stopped'; save(); updateStatus(); }
+  };
+  goBtn.addEventListener('click', go); pauseBtn.addEventListener('click', pause); stopBtn.addEventListener('click', stop);
+  window.addEventListener('keydown', (e) => { if (e.code==='Space') { e.preventDefault(); data.status==='running'?pause():go(); } if (e.key.toLowerCase()==='s') stop(); });
+
+  async function refreshWeekTotals() {
+    if (!data.token) return;
+    try {
+      const wk = weekRangeKeys(new Date());
+      const r = await fetch(`/.netlify/functions/totals?from=${wk.startISO}&to=${wk.endISO}`, { headers: { 'Authorization':'Bearer '+data.token } });
+      if (r.ok) {
+        const j = await r.json();
+        const days = j.days || {};
+        Object.keys(days).forEach(k => { data.totals[k] = days[k].totalMs; });
+        save();
       }
-
-      const applyTheme = () => { document.body.setAttribute('data-theme', data.theme==='dark' ? 'dark' : 'light'); themeBtn.textContent = data.theme==='dark' ? '☀️' : '🌙'; };
-      themeBtn.addEventListener('click', () => { data.theme = data.theme==='dark' ? 'light' : 'dark'; save(); applyTheme(); }); applyTheme();
-
-      function renderProjects() {
-        const opts = ['<option value="">— Select a project —</option>']
-          .concat(data.projects.map((p,i)=>`<option value="${i}" ${i===data.currentProject?'selected':''}>${p.name}</option>`));
-        projectSelect.innerHTML = opts.join('');
-        helper.style.display = data.projects.length ? 'none' : 'block';
-      }
-
-      const updateStatus = () => { statusEl.textContent = data.token ? (data.status.charAt(0).toUpperCase()+data.status.slice(1)) : "Not connected"; connectBtn.style.display = data.token ? 'none' : 'inline-block'; };
-      connectBtn.addEventListener('click', () => { const ret = encodeURIComponent(location.href); window.location.href = '/.netlify/functions/auth-start?return=' + ret; });
-
-      async function syncFromNotion() {
-        if (!data.token) { alert('Connect Notion first'); return; }
-        try {
-          const res = await fetch('/.netlify/functions/lists', { headers: { 'Authorization': 'Bearer ' + data.token } });
-          if (!res.ok) { const t = await res.text(); throw new Error(t); }
-          const { projects = [] } = await res.json();
-          data.projects = projects;
-          data.currentProject = data.projects.length ? 0 : -1;
-          save(); renderProjects();
-        } catch (e) { alert('Could not load projects from Notion: ' + e.message); }
-      }
-      syncBtn.addEventListener('click', syncFromNotion);
-      helperSync.addEventListener('click', syncFromNotion);
-      projectSelect.addEventListener('change', () => { const v = projectSelect.value; data.currentProject = v==='' ? -1 : Number(v); save(); });
-
-      const midnightAfter = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+1, 0,0,0,0);
-      const addMsTo = (day, ms) => { data.totals[day] = (data.totals[day]||0) + ms; };
-      const accrueUntilNow = () => { if (data.status !== 'running' || !data.startCursor) return; let start = new Date(data.startCursor); const now = new Date(); while (start < now) { const boundary = midnightAfter(start); const chunkEnd = boundary < now ? boundary : now; addMsTo(dateKey(start), chunkEnd - start); start = chunkEnd; } data.startCursor = new Date().toISOString(); };
-
-      function weeklyMsWorked() { const { keys } = weekRangeKeys(new Date()); return keys.reduce((sum,k)=> sum + (data.totals[k]||0), 0); }
-      function renderGoal() {
-        const week = weekRangeKeys(new Date());
-        goalLabel.textContent = data.weeklyGoalMs ? `${(data.weeklyGoalMs/3600000).toFixed(1)}h goal • ${week.startISO} → ${week.endISO}` : 'No weekly goal';
-        const worked = weeklyMsWorked();
-        const ratio = data.weeklyGoalMs ? Math.max(0, Math.min(1, worked / data.weeklyGoalMs)) : 0;
-        goalProgress.style.strokeDashoffset = (1 - ratio) * CIRC;
-        const pct = Math.round(ratio * 100);
-        goalInside.textContent = data.weeklyGoalMs ? (pct + '%\nWK') : '0%\nWK';
-      }
-      goalBtn.addEventListener('click', () => {
-        const current = data.weeklyGoalMs ? (data.weeklyGoalMs/3600000).toFixed(1) : '40';
-        const hours = Number(prompt('Set weekly goal (hours, Mon → Sun):', current));
-        if (!hours || hours <= 0) return;
-        data.weeklyGoalMs = Math.round(hours * 3600000);
-        save(); renderGoal();
+    } catch (_) {}
+  }
+  async function sendSession(start, end, clientId, projectId) {
+    if (!data.token) return;
+    try {
+      const res = await fetch('/.netlify/functions/log', {
+        method:'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + data.token },
+        body: JSON.stringify({ start, end, clientId, projectId, note: '', sessionId: data.lastSessionId || start })
       });
-
-      function selectedIds() {
-        const p = data.currentProject>=0 ? data.projects[data.currentProject] : null;
-        return { projectId: p?.id || "", clientId: p?.clientId || "" };
+      if (res.ok) {
+        const j = await res.json();
+        if (j && j.pageId) { data.lastPageId = j.pageId; save(); }
+      } else {
+        const t = await res.text(); alert('Log failed: '+t);
       }
+      await refreshWeekTotals();
+    } catch (e) { console.warn('sendSession failed', e); }
+  }
 
-      const go = () => {
-        if (!data.token) { alert('Connect Notion first'); return; }
-        if (data.currentProject < 0 || !data.projects.length) { alert('Pick a Project from the dropdown first.'); return; }
-        if (data.status === 'running') return;
-        const nowIso = new Date().toISOString();
-        data.sessionStart = nowIso; data.startCursor = nowIso; data.lastSessionId = nowIso; data.lastPageId = null;
-        data.status = 'running'; save(); updateStatus();
-      };
-      const pause = async () => {
-        if (data.status !== 'running') return;
-        accrueUntilNow(); const endIso = new Date().toISOString(); const startIso = data.sessionStart;
-        data.startCursor = null; data.sessionStart = null; data.status = 'paused'; save(); updateStatus(); renderGoal();
-        const {clientId, projectId} = selectedIds();
-        await sendSession(startIso, endIso, clientId, projectId);
-      };
-      const stop = async () => {
-        if (data.status === 'running') {
-          accrueUntilNow(); const endIso = new Date().toISOString(); const startIso = data.sessionStart;
-          data.startCursor = null; data.sessionStart = null; data.status = 'stopped'; save(); updateStatus(); renderGoal();
-          const {clientId, projectId} = selectedIds();
-          await sendSession(startIso, endIso, clientId, projectId);
-        } else { data.status = 'stopped'; save(); updateStatus(); }
-      };
-      goBtn.addEventListener('click', go); pauseBtn.addEventListener('click', pause); stopBtn.addEventListener('click', stop);
-      window.addEventListener('keydown', (e) => { if (e.code==='Space') { e.preventDefault(); data.status==='running'?pause():go(); } if (e.key.toLowerCase()==='s') stop(); });
+  function formatHMS(ms) { ms = Math.max(0, Math.floor(ms)); const s = Math.floor(ms/1000); const hh=Math.floor(s/3600), mm=Math.floor((s%3600)/60), ss=s%60; return [hh,mm,ss].map(n=>String(n).padStart(2,'0')).join(':'); }
 
-      async function refreshWeekTotals() {
-        if (!data.token) return;
-        try {
-          const wk = weekRangeKeys(new Date());
-          const r = await fetch(`/.netlify/functions/totals?from=${wk.startISO}&to=${wk.endISO}`, { headers: { 'Authorization':'Bearer '+data.token } });
-          if (r.ok) {
-            const j = await r.json();
-            const days = j.days || {};
-            Object.keys(days).forEach(k => { data.totals[k] = days[k].totalMs; });
-            save();
-          }
-        } catch (_) {}
-      }
-      async function sendSession(start, end, clientId, projectId) {
-        if (!data.token) return;
-        try {
-          const res = await fetch('/.netlify/functions/log', {
-            method:'POST',
-            headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + data.token },
-            body: JSON.stringify({ start, end, clientId, projectId, note: '', sessionId: data.lastSessionId || start })
-          });
-          if (res.ok) {
-            const j = await res.json();
-            if (j && j.pageId) { data.lastPageId = j.pageId; save(); }
-          } else {
-            const t = await res.text(); alert('Log failed: '+t);
-          }
-          await refreshWeekTotals();
-        } catch (e) { console.warn('sendSession failed', e); }
-      }
+  function render() {
+    const now = new Date();
+    const kNow = [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
+    const y = new Date(now); y.setDate(now.getDate()-1);
+    const b = new Date(now); b.setDate(now.getDate()-2);
+    todayBig.textContent = formatHMS((data.totals[kNow]||0));
+    todayLabel.textContent = new Intl.DateTimeFormat(undefined, { weekday:'long', month:'long', day:'numeric'}).format(now);
+    const rows = [
+      { k: kNow, label: 'Today' },
+      { k: [y.getFullYear(), String(y.getMonth()+1).padStart(2,'0'), String(y.getDate()).padStart(2,'0')].join('-'), label: 'Yesterday' },
+      { k: [b.getFullYear(), String(b.getMonth()+1).padStart(2,'0'), String(b.getDate()).padStart(2,'0')].join('-'), label: 'Day before' },
+    ];
+    rowsEl.innerHTML = rows.map(r => `<tr><td>${r.label}<div style="color:var(--muted); font-size:12px">${r.k}</div></td><td>${formatHMS(data.totals[r.k]||0)}</td></tr>`).join('');
+    renderGoal();
+  }
 
-      const formatHMS = (ms) => { ms = Math.max(0, Math.floor(ms)); const s = Math.floor(ms/1000); const hh=Math.floor(s/3600), mm=Math.floor((s%3600)/60), ss=s%60; return `${pad(hh)}:${pad(mm)}:${pad(ss)}`; };
-      function render() {
-        const now = new Date();
-        const kNow = dateKey(now);
-        const y = new Date(now); y.setDate(now.getDate()-1);
-        const b = new Date(now); b.setDate(now.getDate()-2);
-        todayBig.textContent = formatHMS(data.totals[kNow]||0);
-        todayLabel.textContent = prettyDate(now);
-        const rows = [
-          { k: kNow, label: 'Today' },
-          { k: dateKey(y), label: 'Yesterday' },
-          { k: dateKey(b), label: 'Day before' },
-        ];
-        rowsEl.innerHTML = rows.map(r => `<tr><td>${r.label}<div style="color:var(--muted); font-size:12px">${r.k}</div></td><td>${formatHMS(data.totals[r.k]||0)}</td></tr>`).join('');
-        renderGoal();
-      }
+  const init = async () => {
+    if (data.token) await syncFromNotion();
+    await refreshWeekTotals(); render(); save(); updateStatus();
+  };
 
-      const init = async () => {
-        updateStatus();
-        if (data.token) await syncFromNotion();
-        await refreshWeekTotals(); render(); save();
-      };
-
-      setInterval(() => { accrueUntilNow(); render(); save(); }, 1000);
-      init();
-    })();
-  </script>
-</body>
-</html>
+  setInterval(() => { if (data.status==='running') { const prev = new Date(data.startCursor); const now = new Date(); if (prev) { const key = [prev.getFullYear(), String(prev.getMonth()+1).padStart(2,'0'), String(prev.getDate()).padStart(2,'0')].join('-'); data.totals[key] = (data.totals[key]||0) + 1000; } data.startCursor = new Date().toISOString(); save(); render(); }}, 1000);
+  init();
+})();
+</script></body></html>

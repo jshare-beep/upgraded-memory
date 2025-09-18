@@ -28,10 +28,9 @@ export async function handler(event) {
       }
     });
 
-    // Optional write-back to Projects: set a numeric prop to the total minutes (or hours) so far.
-    const writeProp = process.env.WRITEBACK_PROJECT_TOTAL_PROP; // e.g., "Time Logged"
+    const writeProp = process.env.WRITEBACK_PROJECT_TOTAL_PROP; // e.g., "Total Minutes"
     if (writeProp) {
-      const unit = (process.env.WRITEBACK_PROJECT_TOTAL_UNIT || "minutes").toLowerCase(); // "minutes" | "hours"
+      const unit = (process.env.WRITEBACK_PROJECT_TOTAL_UNIT || "minutes").toLowerCase(); // minutes|hours
       const totalMin = await sumMinutesForProject(notion, timeLogDbId, projectId);
       const value = unit === "hours" ? (totalMin/60) : totalMin;
       await notion.pages.update({ page_id: projectId, properties: { [writeProp]: { number: value } } });

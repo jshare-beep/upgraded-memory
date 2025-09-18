@@ -19,17 +19,14 @@ export async function getTitlePropName(notion, database_id) {
 }
 export async function getClientRelProp(notion, projectsDbId, clientsDbId) {
   const db = await notion.databases.retrieve({ database_id: projectsDbId });
-  // exact match
   for (const [name, def] of Object.entries(db.properties||{})) {
     if (def.type === "relation" && def.relation?.database_id === clientsDbId) return name;
   }
-  // common names fallback
   if (db.properties["Client"]?.type === "relation") return "Client";
   if (db.properties["Clients"]?.type === "relation") return "Clients";
   throw new Error("Projects DB has no relation to Clients DB");
 }
 export async function sumMinutesForProject(notion, timeLogDbId, projectPageId) {
-  // Query all pages in Time Log where Project relation contains projectPageId; sum Minutes
   let cursor = undefined, total = 0;
   do {
     const res = await notion.databases.query({

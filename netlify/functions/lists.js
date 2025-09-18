@@ -35,18 +35,12 @@ export async function handler(event) {
       cursor = res.has_more ? res.next_cursor : undefined;
     } while (cursor);
 
-    // dedupe by lowercase title
-    const seen = new Set();
-    const unique = [];
+    const seen = new Set(); const unique = [];
     for (const p of projects) {
       const k = p.name.trim().toLowerCase();
       if (seen.has(k)) continue;
-      seen.add(k);
-      unique.push(p);
+      seen.add(k); unique.push(p);
     }
-
     return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projects: unique }) };
-  } catch (e) {
-    return { statusCode: 500, body: "Lists error: " + e.message };
-  }
+  } catch (e) { return { statusCode: 500, body: "Lists error: " + e.message }; }
 }
