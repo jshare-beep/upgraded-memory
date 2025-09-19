@@ -25,7 +25,7 @@ export async function handler(event){
     });
     if(!r.ok){ const t=await r.text(); return text(500,'Token exchange failed: '+t); }
     const tok = await r.json();
-    const cookie = [`ntn_access_token=${encodeURIComponent(tok.access_token)}`,'Path=/','HttpOnly','SameSite=Lax','Secure', tok.expires_in?`Max-Age=${tok.expires_in}`:''].filter(Boolean).join('; ');
+    const cookie = [`ntn_access_token=${encodeURIComponent(tok.access_token)}`,'Path=/','HttpOnly','SameSite=None','Secure', tok.expires_in?`Max-Age=${tok.expires_in}`:''].filter(Boolean).join('; ');
     return { statusCode:302, headers:{ 'Set-Cookie': cookie, 'Location':'/widget/' } };
   }catch(e){ return text(500,e.message); }
 }
