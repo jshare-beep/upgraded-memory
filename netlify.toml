@@ -1,16 +1,7 @@
 [build]
-  command = ""
-  publish = "."
-  functions = "netlify/functions"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-
-  [build]
-  command = ""
-  publish = "."
+  # Simple no-op build so Netlify is happy
+  command  = "echo build"
+  publish  = "."
   functions = "netlify/functions"
 
 [functions]
