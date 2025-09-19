@@ -1,10 +1,20 @@
-Workday Timer v7.3.2
+Workday Timer v7.5.1
 
-1) Upload this folder to Netlify (Deploy manually) or push to GitHub and import in Netlify.
-2) In Netlify → Site configuration → Environment variables, add:
-   NOTION_CLIENT_ID, NOTION_CLIENT_SECRET, NOTION_PROJECTS_DB_ID, NOTION_CLIENTS_DB_ID, NOTION_TIMELOG_DB_ID,
-   WRITEBACK_PROJECT_TOTAL_PROP = Total Minutes, WRITEBACK_PROJECT_TOTAL_UNIT = minutes
-3) Retry deploy without cache.
-4) In Notion: open each database (Projects, Clients, Time Log) → Share → invite your integration.
-5) Open /widget/ → Connect Notion → pick a Project → Go / Stop.
-6) Debug env at /.netlify/functions/debug-env
+Deploy (manual):
+1) Netlify → Deploys → Upload this ZIP.
+2) Add env vars in Site configuration → Environment variables:
+   NOTION_CLIENT_ID
+   NOTION_CLIENT_SECRET
+   NOTION_PROJECTS_DB_ID
+   NOTION_CLIENTS_DB_ID
+   NOTION_TIMELOG_DB_ID
+   (optional) WRITEBACK_PROJECT_TOTAL_PROP = Total Minutes
+   (optional) WRITEBACK_PROJECT_TOTAL_UNIT = minutes
+   (optional) NOTION_REDIRECT_URI = https://YOUR-SITE.netlify.app/.netlify/functions/auth-callback
+3) Deploys → Options → Retry deploy without cache.
+4) In Notion: open Projects, Clients, Time Log → Share → invite the integration.
+5) Open /widget/ → Connect Notion → approve.
+6) Checks:
+   /.netlify/functions/debug-env
+   /.netlify/functions/auth-status
+   /.netlify/functions/lists
