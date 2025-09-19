@@ -1,9 +1,9 @@
 {
   "name": "workday-timer",
-  "version": "0.7.2-9",
+  "version": "7.3.0",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@notionhq/client": "^2.2.14"
+    "node-fetch": "^3.3.2"
   }
 }

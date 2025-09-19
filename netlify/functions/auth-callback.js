@@ -1,25 +1,38 @@
+
+import fetch from 'node-fetch';
+
 export async function handler(event) {
-  const clientId = process.env.NOTION_CLIENT_ID;
-  const clientSecret = process.env.NOTION_CLIENT_SECRET;
-  if (!clientId || !clientSecret) return { statusCode: 500, body: "Missing NOTION_CLIENT_ID/SECRET env vars" };
-  try {
-    const redirectBase = `https://${event.headers.host}`;
-    const redirectUri = `${redirectBase}/.netlify/functions/auth-callback`;
-    const params = event.queryStringParameters || {};
-    const code = params.code;
-    const stateStr = params.state || "";
-    const state = stateStr ? JSON.parse(Buffer.from(stateStr, "base64url").toString("utf8")) : {};
-    const returnUrl = state.returnUrl || redirectBase;
-    if (!code) return { statusCode: 400, body: "Missing code" };
-    const tokenRes = await fetch("https://api.notion.com/v1/oauth/token", {
-      method: "POST",
-      headers: { "Authorization": "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64"), "Content-Type": "application/json" },
-      body: JSON.stringify({ grant_type: "authorization_code", code, redirect_uri: redirectUri })
-    });
-    if (!tokenRes.ok) { const text = await tokenRes.text(); return { statusCode: 500, body: "Token exchange failed: " + text }; }
-    const tokenJson = await tokenRes.json();
-    const accessToken = tokenJson.access_token;
-    const url = new URL(returnUrl); url.hash = `access_token=${encodeURIComponent(accessToken)}`;
-    return { statusCode: 302, headers: { Location: url.toString() }, body: "" };
-  } catch (e) { return { statusCode: 500, body: "Callback error: " + e.message }; }
+  const { queryStringParameters, headers } = event;
+  const code = queryStringParameters && queryStringParameters.code;
+  const state = queryStringParameters && queryStringParameters.state || "/widget/";
+  if (!code) return { statusCode: 400, body: "Missing code" };
+  const redirect_uri = new URL("/.netlify/functions/auth-callback", `https://${headers.host}`).toString();
+  const body = {
+    grant_type: "authorization_code",
+    code,
+    redirect_uri
+  };
+  const r = await fetch("https://api.notion.com/v1/oauth/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Basic " + Buffer.from(process.env.NOTION_CLIENT_ID + ":" + process.env.NOTION_CLIENT_SECRET).toString("base64")
+    },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    return { statusCode: 500, body: "Token exchange failed: " + t };
+  }
+  const token = await r.json();
+  // return HTML that stores token in localStorage and redirects back
+  const html = `<!doctype html><meta charset="utf-8"><title>Connecting…</title>
+  <script>
+    try {
+      localStorage.setItem("workday_timer_token", ${JSON.stringify(JSON.stringify(token))});
+    } catch(e) {}
+    location.href = ${JSON.stringify(state)};
+  </script>
+  Connecting…`;
+  return { statusCode: 200, headers: {"content-type":"text/html"}, body: html };
 }
