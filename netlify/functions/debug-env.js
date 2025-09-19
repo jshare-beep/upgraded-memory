@@ -1,18 +1,13 @@
-
-export async function handler() {
-  const keys = [
-    "NOTION_CLIENT_ID",
-    "NOTION_CLIENT_SECRET",
-    "NOTION_PROJECTS_DB_ID",
-    "NOTION_CLIENTS_DB_ID",
-    "NOTION_TIMELOG_DB_ID",
-    "WRITEBACK_PROJECT_TOTAL_PROP",
-    "WRITEBACK_PROJECT_TOTAL_UNIT"
-  ];
-  const out = {};
-  for (const k of keys) {
-    const v = process.env[k];
-    out[k] = (k === "NOTION_CLIENT_SECRET") ? (v ? "✅ exists" : "❌ missing") : (v || "");
-  }
-  return { statusCode: 200, headers: {"content-type":"application/json"}, body: JSON.stringify(out, null, 2) };
+export async function handler(){
+  const e=process.env;
+  const safe={
+    NOTION_CLIENT_ID: e.NOTION_CLIENT_ID || null,
+    NOTION_CLIENT_SECRET: e.NOTION_CLIENT_SECRET ? 'exists' : null,
+    NOTION_PROJECTS_DB_ID: e.NOTION_PROJECTS_DB_ID || null,
+    NOTION_CLIENTS_DB_ID: e.NOTION_CLIENTS_DB_ID || null,
+    NOTION_TIMELOG_DB_ID: e.NOTION_TIMELOG_DB_ID || null,
+    WRITEBACK_PROJECT_TOTAL_PROP: e.WRITEBACK_PROJECT_TOTAL_PROP || null,
+    WRITEBACK_PROJECT_TOTAL_UNIT: e.WRITEBACK_PROJECT_TOTAL_UNIT || 'minutes'
+  };
+  return{statusCode:200,headers:{'Content-Type':'application/json'},body:JSON.stringify(safe,null,2)};
 }

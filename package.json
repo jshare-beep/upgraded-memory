@@ -1,9 +1,9 @@
 {
   "name": "workday-timer",
-  "version": "7.3.0",
+  "version": "7.3.2",
   "private": true,
   "type": "module",
-  "dependencies": {
-    "node-fetch": "^3.3.2"
+  "engines": {
+    "node": ">=20"
   }
 }

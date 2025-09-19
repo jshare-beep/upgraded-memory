@@ -1,7 +1,6 @@
 [build]
-  # Simple no-op build so Netlify is happy
-  command  = "echo build"
-  publish  = "."
+  command = "echo build"
+  publish = "."
   functions = "netlify/functions"
 
 [functions]

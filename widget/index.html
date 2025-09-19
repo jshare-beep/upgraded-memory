@@ -1,131 +1,88 @@
-
-<!doctype html>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Workday Timer</title>
 <style>
-:root{
-  --bg:#fff; --fg:#1f2937; --muted:#6b7280; --accent:#936B4D;
-  --card:#fafafa; --border:#e5e7eb;
-}
-*{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
-body{margin:0;background:var(--bg);color:var(--fg)}
-.wrap{max-width:780px;margin:28px auto;padding:20px}
-.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
-.title{font-size:28px;font-weight:800;letter-spacing:.3px}
-.btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
-.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.badge{font-size:13px;color:#fff;border-radius:20px;padding:4px 10px}
-.grid{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
-.big{font-size:54px;font-weight:800;letter-spacing:1px}
-.row{display:flex;gap:8px;align-items:center}
-.select{padding:8px;border:1px solid var(--border);border-radius:10px;background:#fff}
-.hint{margin-top:12px;color:var(--muted);font-size:14px;line-height:1.4}
-.ghost{border:1px dashed var(--border);background:transparent}
-</style>
-<div class="wrap">
-  <div class="header">
-    <div class="title">Let’s Log Some Hours</div>
-    <div class="row">
-      <button id="connect" class="btn">Connect Notion</button>
-      <span id="status" class="badge" style="background:#9CA3AF">Not connected</span>
+:root{--bg:#fff;--fg:#222;--muted:#666;--brand:#936B4D;--accent:#3a7e7a;--accent-2:#b07a59;--accent-warn:#b65a5a;--ring:rgba(0,0,0,.08);--card:#faf8f6;--soft:#f3efe9}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:16px/1.45 "Inter",ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
+.wrap{max-width:860px;margin:24px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:20px}
+h1{font-weight:800;letter-spacing:.2px;margin:0 0 8px;font-size:clamp(26px,4vw,36px);color:var(--brand)}
+.sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.spacer{flex:1}
+.btn{appearance:none;border:1px solid var(--ring);background:#fff;border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.go{background:var(--accent);border-color:transparent;color:#fff}
+.btn.pause{background:#e5dccf}
+.btn.stop{background:var(--accent-warn);border-color:transparent;color:#fff}
+.btn.sec{background:#fff}
+.sel,.inp{border:1px solid var(--ring);background:#fff;border-radius:12px;padding:10px 12px;min-height:44px}
+.sel{min-width:260px}
+.timer{font-weight:900;letter-spacing:2px;font-size:clamp(36px,8vw,64px);padding:14px 0}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:var(--soft);padding:6px 10px;color:#333}
+.status-dot{width:8px;height:8px;border-radius:999px;background:#bbb}
+.status-dot.live{background:#12b886}
+.grid{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+.footer{font-size:13px;color:var(--muted);margin-top:10px;white-space:pre-line}
+.small{font-size:12px;color:var(--muted)}
+a{color:var(--accent-2);text-decoration:none}a:hover{text-decoration:underline}
+.hint{font-size:13px;color:var(--muted)}
+.hr{height:1px;background:var(--ring);margin:16px 0}
+</style></head><body>
+<div class="wrap"><div class="card">
+  <div class="row">
+    <div><h1>Let’s Log Some Hours</h1><p class="sub">Fast, friendly time tracking.</p></div>
+    <div class="spacer"></div>
+    <button id="connectBtn" class="btn sec">Connect Notion</button>
+    <span id="connBadge" class="pill"><span class="status-dot"></span><span id="connText">Not connected</span></span>
+  </div>
+  <div class="hr"></div>
+  <div class="row" style="gap:8px">
+    <select id="projectSelect" class="sel" aria-label="Select a project">
+      <option value="">— Select a project —</option>
+    </select>
+    <button id="refreshProjects" class="btn sec" title="Refresh projects">⟳</button>
+    <div class="spacer"></div>
+    <div class="pill"><strong>Daily goal</strong>&nbsp;
+      <input id="goalInput" class="inp" type="number" inputmode="numeric" min="0" step="0.25" style="width:6em" aria-label="Daily goal in hours"> h
+      <button id="goalSave" class="btn sec" style="margin-left:8px">Save</button>
     </div>
   </div>
-
-  <div class="grid">
-    <div>
-      <div id="today" class="muted"></div>
-      <div id="clock" class="big">00:00:00</div>
-      <div class="row" style="margin-top:8px">
-        <select id="projectSel" class="select"><option value="">Select a project…</option></select>
-        <button id="goal" class="btn ghost">Weekly Goal</button>
-      </div>
-    </div>
-    <button id="go" class="btn" style="background:#8BA888;color:#fff;border-color:#8BA888">Go</button>
-    <button id="pause" class="btn" style="background:#C8A970;color:#fff;border-color:#C8A970">Pause</button>
-    <button id="stop" class="btn" style="background:#C47A6A;color:#fff;border-color:#C47A6A">Stop</button>
+  <div class="timer" id="timer">00:00:00</div>
+  <div class="row">
+    <button id="goBtn" class="btn go">Go</button>
+    <button id="pauseBtn" class="btn pause" disabled>Pause</button>
+    <button id="stopBtn" class="btn stop" disabled>Stop</button>
+    <div class="spacer"></div>
+    <button id="undoBtn" class="btn sec" title="Delete most recent entry">Oops! Delete Last</button>
   </div>
-
-  <div class="hint" id="footerHelp">
-    <strong>Quick start:</strong>
-    <ol style="margin:6px 0 0 16px;padding:0">
-      <li>Click <em>Connect Notion</em> → approve.</li>
-      <li>In Notion, invite this integration to <b>Projects</b>, <b>Clients</b>, and <b>Time Log</b> databases.</li>
-      <li>Pick a <b>Project</b> and use <b>Go / Pause / Stop</b>.</li>
-    </ol>
-    <div style="margin-top:6px">Writes to <b>Time Log</b>. With env vars <code>WRITEBACK_PROJECT_TOTAL_PROP="Total Minutes"</code> and <code>WRITEBACK_PROJECT_TOTAL_UNIT="minutes"</code>, project totals update automatically.</div>
-    <div style="margin-top:6px">Manage projects: <a id="footerOpenProjects" href="#" target="_blank" rel="noopener">Open Projects</a> (or append <code>?projects_url=YOUR_NOTION_PROJECTS_LINK</code>).</div>
-  </div>
-</div>
-
+  <div class="hr"></div>
+  <div class="grid"><div class="hint">
+    Tip: pick a Project first, then press <strong>Go</strong>. When you press <strong>Stop</strong> we’ll save to your Notion <em>Time Log</em>.
+  </div><div class="small" id="goalStatus">Goal: —</div></div>
+  <p class="footer" id="footer">Quick start:
+• Click “Connect Notion” → approve.
+• In Notion, invite this integration to the <strong>Projects</strong>, <strong>Clients</strong>, and <strong>Time Log</strong> databases (open each DB → Share → select your integration).
+• Pick a Project and use Go / Pause / Stop.</p>
+</div></div>
 <script>
-const $ = s => document.querySelector(s);
-const params = new URLSearchParams(location.search);
-const projectsUrl = params.get('projects_url') || ''; const footerOpenProjects = document.getElementById('footerOpenProjects');
-if (projectsUrl) { footerOpenProjects.href = projectsUrl; } else { footerOpenProjects.style.display = 'none'; }
-
-function inIframe(){ try { return window.self !== window.top; } catch(e){ return true; } }
-const connectBtn = $("#connect");
-connectBtn.addEventListener("click", () => {
-  const ret = encodeURIComponent(location.pathname + location.search);
-  const url = "/.netlify/functions/auth-start?return=" + ret;
-  if (inIframe()) window.open(url, "_blank", "noopener"); else location.href = url;
-});
-
-let token = null;
-function loadToken(){ try { token = JSON.parse(localStorage.getItem("workday_timer_token")||"null")?.access_token || null; } catch(e){} }
-function saveToken(t){ try { localStorage.setItem("workday_timer_token", JSON.stringify(t)); } catch(e){} }
-loadToken();
-
-const statusBadge = $("#status");
-function setStatus(ok){ statusBadge.textContent = ok ? "Connected" : "Not connected"; statusBadge.style.background = ok ? "#34D399" : "#9CA3AF"; }
-
-async function api(path, opt={}){
-  const r = await fetch(path, { ...opt, headers: { ...(opt.headers||{}), "Authorization": "Bearer " + token }});
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-
-async function refreshProjects(){
-  if (!token) return;
-  const data = await api("/.netlify/functions/lists");
-  const sel = $("#projectSel");
-  sel.innerHTML = '<option value="">Select a project…</option>';
-  (data.projects || []).forEach(p => {
-    const o = document.createElement("option");
-    o.value = p.id; o.textContent = p.title; sel.appendChild(o);
-  });
-  setStatus(true);
-}
-
-function fmt(ms){ const s = Math.floor(ms/1000); const h = Math.floor(s/3600); const m = Math.floor(s%3600/60); const ss = s%60; const z=n=>String(n).padStart(2,"0"); return `${z(h)}:${z(m)}:${z(ss)}`; }
-let t0 = 0, acc=0, tick=null;
-
-function renderClock(){ $("#clock").textContent = fmt((t0? Date.now()-t0:0)+acc); }
-setInterval(renderClock, 250);
-
-$("#go").onclick = ()=>{ if(!$("#projectSel").value) { alert("Pick a project first"); return; } if(!tick) t0 = Date.now(); tick = true; };
-$("#pause").onclick = ()=>{ if(tick){ acc += Date.now()-t0; t0 = 0; tick = false; renderClock(); } };
-$("#stop").onclick = async ()=>{
-  if (!$("#projectSel").value) { alert("Pick a project first"); return; }
-  if (tick){ acc += Date.now()-t0; t0=0; tick=false; }
-  const minutes = Math.max(1, Math.round(acc/60000));
-  const date = new Date().toISOString().slice(0,10);
-  await api("/.netlify/functions/write-log", { method:"POST", body: JSON.stringify({ minutes, date, project_id: $("#projectSel").value, session_id: Math.random().toString(36).slice(2) }), headers: { "content-type":"application/json" }});
-  acc=0; renderClock(); alert("Saved " + minutes + " min.");
-};
-
-// Weekly goal – inline fallback (no prompt needed)
-$("#goal").onclick = ()=>{
-  if ($("#wgInline")) return;
-  const holder = document.createElement("span"); holder.id="wgInline"; holder.style.marginLeft="8px";
-  holder.innerHTML = '<input type="number" id="wgHours" min="0" step="0.5" style="width:90px;padding:6px;border:1px solid var(--border);border-radius:8px" placeholder="hours"><button id="wgSet" class="btn ghost" style="margin-left:6px">Set</button>';
-  $("#goal").after(holder);
-  $("#wgSet").onclick = ()=>{ holder.remove(); alert("Weekly goal saved (local only)."); };
-};
-
-(async function init(){
-  setStatus(!!token);
-  if (token) try { await refreshProjects(); } catch(e){ setStatus(false); }
-})();
+const qs=(s)=>document.querySelector(s);const fmt2=(n)=>String(n).padStart(2,'0');function fmtHMS(ms){const t=Math.max(0,Math.floor(ms/1000));const h=Math.floor(t/3600);const m=Math.floor((t%3600)/60);const s=t%60;return `${fmt2(h)}:${fmt2(m)}:${fmt2(s)}`;}
+function weekKey(d=new Date()){const dt=new Date(d);const day=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-day);const oneJan=new Date(dt.getFullYear(),0,1);const week=Math.ceil((((dt-oneJan)/86400000)+oneJan.getDay()+1)/7);return `${dt.getFullYear()}-${fmt2(week)}`;}
+function lsGet(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v);}catch{return fb;}}function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v));}
+const connectBtn=qs('#connectBtn');const connBadge=qs('#connBadge');const connDot=connBadge.querySelector('.status-dot');const connText=qs('#connText');const projectSelect=qs('#projectSelect');const refreshProjects=qs('#refreshProjects');const goBtn=qs('#goBtn');const pauseBtn=qs('#pauseBtn');const stopBtn=qs('#stopBtn');const undoBtn=qs('#undoBtn');const timerEl=qs('#timer');const goalInput=qs('#goalInput');const goalSave=qs('#goalSave');const goalStatus=qs('#goalStatus');
+let ticking=false,startAt=0,pausedMs=0,interval=null,lastLogId=null;
+async function pingLists(){const res=await fetch('/.netlify/functions/lists',{credentials:'include'});if(res.status===401||res.status===403){setConn(false);return null;}if(!res.ok){setConn(false);return null;}const data=await res.json();setConn(true);return data;}
+function setConn(connected){if(connected){connDot.classList.add('live');connText.textContent='Connected';}else{connDot.classList.remove('live');connText.textContent='Not connected';}}
+async function loadProjects(){projectSelect.innerHTML=`<option value="">— Select a project —</option>`;const data=await pingLists();if(!data)return;(data.projects||[]).forEach(p=>{const opt=document.createElement('option');opt.value=p.id;opt.textContent=p.title||'(Untitled)';projectSelect.appendChild(opt);});}
+function refreshGoalUI(){const key='dailyGoalHours';const hours=lsGet(key,0);goalInput.value=hours||'';const wkKey=weekKey();const mins=lsGet('weeklyMinutes_'+wkKey,0);const hrs=(mins/60).toFixed(2);goalStatus.textContent=hours?`Week: ${hrs} / ${(hours*5).toFixed(2)} h (Mon–Fri)`:`Goal: —`;}
+goalSave.addEventListener('click',()=>{const v=Math.max(0,Number(goalInput.value||0));lsSet('dailyGoalHours',v);refreshGoalUI();});
+function updateTimer(){const now=Date.now();const ms=(now-startAt)+pausedMs;timerEl.textContent=fmtHMS(ms);}
+function setButtons(state){if(state==='idle'){goBtn.disabled=false;pauseBtn.disabled=true;stopBtn.disabled=true;}else if(state==='running'){goBtn.disabled=true;pauseBtn.disabled=false;stopBtn.disabled=false;}else{goBtn.disabled=false;pauseBtn.disabled=true;stopBtn.disabled=false;}}
+goBtn.addEventListener('click',()=>{if(!projectSelect.value){alert('Please choose a project first.');return;}if(!ticking){startAt=Date.now();pausedMs=0;interval=setInterval(updateTimer,250);ticking=true;setButtons('running');}else{startAt=Date.now();interval=setInterval(updateTimer,250);setButtons('running');}});
+pauseBtn.addEventListener('click',()=>{if(!ticking)return;clearInterval(interval);pausedMs+=Date.now()-startAt;setButtons('paused');});
+stopBtn.addEventListener('click',async()=>{if(!ticking&&pausedMs===0)return;clearInterval(interval);const totalMs=(ticking?(Date.now()-startAt):0)+pausedMs;ticking=false;pausedMs=0;setButtons('idle');timerEl.textContent='00:00:00';const minutes=Math.max(1,Math.round(totalMs/60000));try{const body={minutes,projectId:projectSelect.value,date:new Date().toISOString()};const res=await fetch('/.netlify/functions/write-log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),credentials:'include'});if(!res.ok){throw new Error('Write failed');}const j=await res.json();lastLogId=j.logId||null;const wkKey='weeklyMinutes_'+weekKey();const cur=lsGet(wkKey,0);lsSet(wkKey,cur+minutes);refreshGoalUI();alert(`Saved ${minutes} min to Notion ✅`);}catch(e){alert(`Save failed: ${e.message}`);}});
+undoBtn.addEventListener('click',async()=>{if(!lastLogId){alert('No recent entry from this widget to delete.');return;}if(!confirm('Delete the most recent entry?'))return;try{const res=await fetch('/.netlify/functions/delete-log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({logId:lastLogId}),credentials:'include'});if(!res.ok)throw new Error('Delete failed');const j=await res.json();if(j.minutes){const wkKey='weeklyMinutes_'+weekKey();const cur=lsGet(wkKey,0);lsSet(wkKey,Math.max(0,cur-j.minutes));}refreshGoalUI();alert('Deleted last entry ✅');lastLogId=null;}catch(e){alert(`Could not delete: ${e.message}`);}});
+connectBtn.addEventListener('click',()=>{window.location.href='/.netlify/functions/auth-start';});
+(async function init(){await loadProjects();refreshGoalUI();})();refreshProjects.addEventListener('click',loadProjects);
 </script>
+</body></html>
