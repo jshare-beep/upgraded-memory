@@ -7,7 +7,7 @@ export async function handler(event){
     const state= url.searchParams.get('state');
     if(!code) return text(400,'Missing code');
     const st = getCookie(event,'ntn_oauth_state');
-    if(!st || st!==state) return text(400,'State mismatch');
+    if(!st || !state || st!==state) return text(400,'State mismatch');
 
     const proto = event.headers['x-forwarded-proto'] || 'https';
     const host  = event.headers['x-forwarded-host'] || event.headers.host;
