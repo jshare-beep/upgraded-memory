@@ -1,4 +1,4 @@
-Workday Timer v7.6.0-r2
+Workday Timer v7.6.0-r3
 
 Upload this entire ZIP to Netlify (Deploys → Upload deploy). Then:
 1) Add env vars in Site configuration → Environment variables (exact names):

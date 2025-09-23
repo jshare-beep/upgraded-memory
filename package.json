@@ -1,6 +1,6 @@
 {
   "name": "workday-timer",
-  "version": "7.6.0-r2",
+  "version": "7.6.0-r3",
   "private": true,
   "type": "module",
   "engines": {
